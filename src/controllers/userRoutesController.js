@@ -6,7 +6,7 @@ const axios = require('axios');
 //get User
 controller.getUser = async (req, res) => {
     try {
-        const user = await userModel.findOne({ cedula: req.query.cedula }, '-password -blockchain_PK')
+        const user = await userModel.findOne({ cedula: req.query.cedula }, '-password -blockchain_PK -__v -_id')
         if (!user) {
             res.status(404).json({ data: "User not found" })
         } else {

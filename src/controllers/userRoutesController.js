@@ -2,8 +2,8 @@ const controller = {}
 const userModel = require('../models/userModel.js')
 const crypting = require('../config/encrypting')
 const auth = require('../config/auth')
+const bcrypt = require('bcrypt')
 const axios = require('axios')
-const jwt = require('jsonwebtoken')
 
 //Login
 controller.login = async (req, res) => {
@@ -15,7 +15,7 @@ controller.login = async (req, res) => {
         }
         const accesToken = auth.createToken(payload)
         if (user) {
-            const validPassword = crypting.verifyPassword(req.body.password, user.password);
+            const validPassword = await bcrypt.compare(req.body.password, payload.password);
             if (validPassword) {
                 res.status(200).json({ message: 'Login sucefully!', accesToken: accesToken })
             } else {
@@ -37,9 +37,10 @@ controller.register = async (req, res) => {
     const user = await userModel.findOne({ cedula: req.body.cedula, username: req.body.username })
     try {
         if (!user) {
-            req.body.password = crypting.cryptPassword(req.body.password, salt)
+            const salt = await bcrypt.genSalt(10)
+            req.body.password = await bcrypt.hash(req.body.password, salt)
             //make blockchain user creation request
-            const response = await axios.get('https://big-pumas-beg-190-26-207-103.loca.lt/users/createIdentity') ?? "Couldnt communicate"
+            //const response = await axios.get('https://big-pumas-beg-190-26-207-103.loca.lt/users/createIdentity') ?? "Couldnt communicate"
             const info = {
                 "name": req.body.name,
                 "surnames": req.body.surnames,
@@ -47,7 +48,7 @@ controller.register = async (req, res) => {
                 "password": req.body.password,
                 "cedula": req.body.cedula,
                 "email": req.body.email,
-                "blockchain_PK": response.data.key
+                "blockchain_PK": "response.data.key"
             }
             await userModel.create(info)
             const payload = {
@@ -111,5 +112,25 @@ controller.consultarAcciones = async (req, res) => {
         res.status(500).json({ data: "Server internal error" })
     }
 }
-
+controller.editInfo = async (req, res) => {
+    try {
+        if (await auth.verifyToken(req, res)) {
+            const salt = await bcrypt.genSalt(10)
+            req.body.password = await bcrypt.hash(req.body.password, salt)
+            const newUser = {
+                "name": req.body.name,
+                "surnames": req.body.surnames,
+                "password": req.body.password,
+                "email": req.body.email,
+            }
+            await userModel.findOneAndUpdate({ username: req.body.username }, newUser)
+            res.sendStatus(204)
+        } else {
+            res.sendStatus(403)
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ data: "Server internal error" })
+    }
+}
 module.exports = controller;

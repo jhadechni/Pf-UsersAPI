@@ -17,7 +17,7 @@ controller.login = async (req, res) => {
         if (user) {
             const validPassword = crypting.verifyPassword(req.body.password, user.password);
             if (validPassword) {
-                res.status(200).json({ message : 'Login sucefully!', accesToken: accesToken })
+                res.status(200).json({ message: 'Login sucefully!', accesToken: accesToken })
             } else {
                 res.status(404).json({ data: "Password incorrect" })
             }
@@ -55,7 +55,7 @@ controller.register = async (req, res) => {
                 'password': req.body.password
             }
             const accesToken = auth.createToken(payload)
-            res.status(201).json({ message: "User created sucefully!" , token : accesToken})
+            res.status(201).json({ message: "User created sucefully!", token: accesToken })
         } else {
             res.status(208).json({ message: "User already exist" })
         }
@@ -68,16 +68,16 @@ controller.register = async (req, res) => {
 //get User
 controller.getUser = async (req, res) => {
     try {
-        const user = await userModel.findOne({ cedula: req.query.cedula }, '-password -blockchain_PK -__v -_id')
-        if (!user) {
-            res.status(404).json({ data: "User not found" })
-        } else {
-            if (await auth.verifyToken(req,res)) {
-                res.status(200).json(user)
+        if (await auth.verifyToken(req, res)) {
+            const user = await userModel.findOne({ cedula: req.query.cedula }, '-password -blockchain_PK -__v -_id')
+            if (!user) {
+                res.status(404).json({ data: "User not found" })
             } else {
-                res.sendStatus(401)
+                res.status(200).json(user)
             }
-           
+
+        } else {
+            res.sendStatus(401)
         }
     } catch (error) {
         console.log(error)
@@ -112,15 +112,4 @@ controller.consultarAcciones = async (req, res) => {
     }
 }
 
-/* async function verifyToken (req, res) {
-    try {
-        const authHeader = await req.headers['authorization']
-        const token = authHeader && authHeader.split(' ')[1]
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-        return true
-    } catch (error) {
-        console.log(error)
-        return false
-    }
-} */
 module.exports = controller;

@@ -8,8 +8,9 @@ mongoose.connect(URI,{
 .then(() => {
     console.log("Success when connecting to the database");
 })
-.catch(() => {
+.catch((e) => {
     console.error("Couldnt connect to the database. Exiting...");
+    console.log(e)
     process.exit();
 });
 

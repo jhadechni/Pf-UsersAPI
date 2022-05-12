@@ -18,4 +18,5 @@ router.route('/login')
 router.route('/actions')
       .get(consultarAcciones)
 
+
 module.exports = router;

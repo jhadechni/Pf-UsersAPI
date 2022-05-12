@@ -1,15 +1,16 @@
 const mongoose = require('mongoose')
 
 const userSchema = new mongoose.Schema({
-  name: String,
-  surnames: String,
-  username: String,
-  password: String,
-  cedula: String,
-  email: String,
+  name: {type : String, required: true},
+  surnames: {type: String, required: true},
+  username: {type: String, required: true},
+  password: {type: String, required: true},
+  cedula: {type: String, required: true},
+  email: {type: String, required: true},
   blockchain_PK: { 
     type: String, 
-    default: ' ' 
+    default: '',
+    required: true
   },
   role: {
     type: String,

@@ -34,6 +34,7 @@ controller.login = async (req, res) => {
 
 //Register
 controller.register = async (req, res) => {
+    if(!req.body.username || !req.body.password || !req.body.name || !req.body.cedula || !req.body.email) return res.sendStatus(400)
     const user = await userModel.findOne({ cedula: req.body.cedula, username: req.body.username })
     try {
         if (!user) {
@@ -70,6 +71,7 @@ controller.register = async (req, res) => {
 controller.getUser = async (req, res) => {
     try {
         if (await auth.verifyToken(req, res)) {
+            if(!req.query.cedula) return res.sendStatus(400)
             const user = await userModel.findOne({ cedula: req.query.cedula }, '-password -blockchain_PK -__v -_id')
             if (!user) {
                 res.status(404).json({ data: "User not found" })
@@ -88,6 +90,7 @@ controller.getUser = async (req, res) => {
 
 controller.consultarAcciones = async (req, res) => {
     try {
+        if(!req.query.cedula) return res.sendStatus(400)
         const user = await userModel.findOne({ cedula: req.query.cedula }, '-password -blockchain_PK')
         if (!user) {
             res.status(404).json({ data: "User not found" })

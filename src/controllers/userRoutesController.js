@@ -7,6 +7,7 @@ const axios = require('axios')
 //Login
 controller.login = async (req, res) => {
     try {
+        if(!req.body.username) return res.status(400).json({message: 'no username provided'})
         const user = await userModel.findOne({ username: req.body.username }, '-blockchain_PK')
         const payload = {
             'username': user.username,
@@ -39,7 +40,7 @@ controller.register = async (req, res) => {
             const salt = await bcrypt.genSalt(10)
             req.body.password = await bcrypt.hash(req.body.password, salt)
             //make blockchain user creation request
-            const response = await axios.get(process.env.BLOCKCHAIN_API_URI.concat('/users/createIdentity')) ?? "Couldnt communicate"
+            //const response = await axios.get(process.env.BLOCKCHAIN_API_URI.concat('/users/createIdentity')) ?? "Couldnt communicate"
             const info = {
                 "name": req.body.name,
                 "surnames": req.body.surnames,
@@ -47,7 +48,7 @@ controller.register = async (req, res) => {
                 "password": req.body.password,
                 "cedula": req.body.cedula,
                 "email": req.body.email,
-                "blockchain_PK": response.data.key
+                "blockchain_PK": "response.data.key"
             }
             await userModel.create(info)
             const payload = {
@@ -94,7 +95,7 @@ controller.consultarAcciones = async (req, res) => {
             if (await auth.verifyToken(req, res)) {
                 const actions = {
                     "user": ["Editar información", "Consultar certificado de tradición", "Crear PQRSD"],
-                    "admin": ["Editar información", "Editar rol de un usuario", "Crear certificado de tradición", "Modificar certificado de tradición", "Crear PQRSD", "Modificar PQRSD"]
+                    "admin": ["Editar información", "Hacer administradores a otros usuarios", "Crear certificado de tradición", "Modificar certificado de tradición", "Crear PQRSD", "Modificar PQRSD"]
                 }
                 if (user.role === "USER") {
                     res.status(200).json({ actions: actions.user })
@@ -117,10 +118,10 @@ controller.editInfo = async (req, res) => {
             const salt = await bcrypt.genSalt(10)
             req.body.password = await bcrypt.hash(req.body.password, salt)
             const newUser = {
-                "name": req.body.name,
-                "surnames": req.body.surnames,
-                "password": req.body.password,
-                "email": req.body.email,
+                "name": req.body.newName,
+                "surnames": req.body.newSurname,
+                "password": req.body.newPassword,
+                "email": req.body.newEmail,
             }
             await userModel.findOneAndUpdate({ username: req.body.username }, newUser)
             res.sendStatus(204)

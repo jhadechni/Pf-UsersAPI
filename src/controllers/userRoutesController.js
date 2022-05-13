@@ -7,7 +7,7 @@ const axios = require('axios')
 //Login
 controller.login = async (req, res) => {
     try {
-        if(!req.body.username) return res.status(400).json({message: 'no username provided'})
+        if(!req.body.username || !req.body.password) return res.sendStatus(400)
         const user = await userModel.findOne({ username: req.body.username }, '-blockchain_PK')
         if (user) {
             const payload = {

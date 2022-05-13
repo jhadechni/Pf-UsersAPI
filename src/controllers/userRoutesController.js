@@ -10,11 +10,11 @@ controller.login = async (req, res) => {
         if(!req.body.username) return res.status(400).json({message: 'no username provided'})
         const user = await userModel.findOne({ username: req.body.username }, '-blockchain_PK')
         if (user) {
-            const validPassword = await bcrypt.compare(req.body.password, payload.password);
             const payload = {
                 'username': user.username,
                 'password': user.password
             }
+            const validPassword = await bcrypt.compare(req.body.password, payload.password);
             const accesToken = auth.createToken(payload)
             if (validPassword) {
                 res.status(200).json({ message: 'Login sucefully!', accesToken: accesToken })

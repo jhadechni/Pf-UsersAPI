@@ -17,7 +17,7 @@ controller.login = async (req, res) => {
             const validPassword = await bcrypt.compare(req.body.password, payload.password);
             const accesToken = auth.createToken(payload)
             if (validPassword) {
-                res.status(200).json({ message: 'Login sucefully!', accesToken: accesToken })
+                res.status(200).json({ message: 'Login sucefully!', accesToken: accesToken, info : user })
             } else {
                 res.status(404).json({ data: "Password incorrect" })
             }

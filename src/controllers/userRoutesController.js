@@ -8,7 +8,7 @@ const axios = require('axios')
 controller.login = async (req, res) => {
     try {
         if(!req.body.username || !req.body.password) return res.sendStatus(400)
-        const user = await userModel.findOne({ username: req.body.username }, '-blockchain_PK')
+        const user = await userModel.findOne({ username: req.body.username }, '-blockchain_PK -_id')
         if (user) {
             const payload = {
                 'username': user.username,
@@ -41,7 +41,7 @@ controller.register = async (req, res) => {
             const salt = await bcrypt.genSalt(10)
             req.body.password = await bcrypt.hash(req.body.password, salt)
             //make blockchain user creation request
-            //const response = await axios.get(process.env.BLOCKCHAIN_API_URI.concat('/users/createIdentity')) ?? "Couldnt communicate"
+            const response = await axios.get(process.env.BLOCKCHAIN_API_URI.concat('/users/createIdentity')) || "Couldnt communicate"
             const info = {
                 "name": req.body.name,
                 "surnames": req.body.surnames,
@@ -49,7 +49,7 @@ controller.register = async (req, res) => {
                 "password": req.body.password,
                 "cedula": req.body.cedula,
                 "email": req.body.email,
-                "blockchain_PK": "response.data.key"
+                "blockchain_PK": response.data.key
             }
             await userModel.create(info)
             const payload = {

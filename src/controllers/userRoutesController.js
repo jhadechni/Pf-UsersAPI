@@ -63,10 +63,9 @@ controller.register = async (req, res) => {
         }
     } catch (error) {
         console.log(error)
-        res.status(500).json({ data: "Server internal error" })
+        res.status(500).json({ data: "Server internal error" , error : error})
     }
 }
-
 //get User
 controller.getUser = async (req, res) => {
     try {

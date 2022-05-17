@@ -7,7 +7,7 @@ const axios = require('axios')
 //Login
 controller.login = async (req, res) => {
     try {
-        if(!req.body.username || !req.body.password) return res.sendStatus(400)
+        if (!req.body.username || !req.body.password) return res.sendStatus(400)
         const user = await userModel.findOne({ username: req.body.username }, '-blockchain_PK -_id')
         if (user) {
             const payload = {
@@ -17,7 +17,7 @@ controller.login = async (req, res) => {
             const validPassword = await bcrypt.compare(req.body.password, payload.password);
             const accesToken = auth.createToken(payload)
             if (validPassword) {
-                res.status(200).json({ message: 'Login sucefully!', accesToken: accesToken, info : user })
+                res.status(200).json({ message: 'Login sucefully!', accesToken: accesToken, info: user })
             } else {
                 res.status(404).json({ data: "Password incorrect" })
             }
@@ -34,10 +34,10 @@ controller.login = async (req, res) => {
 
 //Register
 controller.register = async (req, res) => {
-    if(!req.body.username || !req.body.password || !req.body.name || !req.body.cedula || !req.body.email) return res.sendStatus(400)
-    const user = await userModel.findOne({ cedula: req.body.cedula, username: req.body.username })
+    if (!req.body.username || !req.body.password || !req.body.name || !req.body.cedula || !req.body.email) return res.sendStatus(400)
+    const user = await userModel.findOne({ username: req.body.username })
     try {
-        if (!user) {
+        if (!user && user.cedula != req.body.cedula) {
             const salt = await bcrypt.genSalt(10)
             req.body.password = await bcrypt.hash(req.body.password, salt)
             //make blockchain user creation request
@@ -63,14 +63,14 @@ controller.register = async (req, res) => {
         }
     } catch (error) {
         console.log(error)
-        res.status(500).json({ data: "Server internal error" , error : error})
+        res.status(500).json({ data: "Server internal error", error: error })
     }
 }
 //get User
 controller.getUser = async (req, res) => {
     try {
         if (await auth.verifyToken(req, res)) {
-            if(!req.query.cedula) return res.sendStatus(400)
+            if (!req.query.cedula) return res.sendStatus(400)
             const user = await userModel.findOne({ cedula: req.query.cedula }, '-password -blockchain_PK -__v -_id')
             if (!user) {
                 res.status(404).json({ data: "User not found" })
@@ -89,7 +89,7 @@ controller.getUser = async (req, res) => {
 
 controller.consultarAcciones = async (req, res) => {
     try {
-        if(!req.query.cedula) return res.sendStatus(400)
+        if (!req.query.cedula) return res.sendStatus(400)
         const user = await userModel.findOne({ cedula: req.query.cedula }, '-password -blockchain_PK')
         if (!user) {
             res.status(404).json({ data: "User not found" })

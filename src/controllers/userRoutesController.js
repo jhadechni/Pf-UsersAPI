@@ -35,9 +35,10 @@ controller.login = async (req, res) => {
 //Register
 controller.register = async (req, res) => {
     if (!req.body.username || !req.body.password || !req.body.name || !req.body.cedula || !req.body.email) return res.sendStatus(400)
-    const user = await userModel.findOne({ username: req.body.username })
+    console.log(req.body.username)
+    const user = await userModel.findOne({ cedula: req.body.cedula })
     try {
-        if (!user && user.cedula != req.body.cedula) {
+        if (!user) {
             const salt = await bcrypt.genSalt(10)
             req.body.password = await bcrypt.hash(req.body.password, salt)
             //make blockchain user creation request

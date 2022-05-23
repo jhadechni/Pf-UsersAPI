@@ -10,6 +10,7 @@ const { createPDFTIL } = require('../config/filesCreation')
 controller.createCertificateTIL = async (req, res) => {
     if (!req.body.cedula || !req.body.description || !req.body.adminCedula || !req.body.valorActo || !req.body.city) { res.sendStatus(400) }
     const isAdmin = await userModel.findOne({ cedula: req.body.adminCedula })
+    if(!isAdmin){res.status(404).json({message : 'User not found'})}
     if (isAdmin.role != "ADMIN") { res.status(403).send({ message: 'Action not allowed' }) }
     try {
         if (!await auth.verifyToken(req, res)) { res.sendStatus(401) }

@@ -5,7 +5,7 @@ const certificateRoutes = require('./certificateRoutes')
 const routes = (app) => {
     app.use('/', defaultRoutes)
     app.use('/users', userRoutes)
-    //app.use('/certificate', certificateRoutes)
+    app.use('/certificate', certificateRoutes)
 };
 
 module.exports = routes

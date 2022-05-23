@@ -97,8 +97,8 @@ controller.consultarAcciones = async (req, res) => {
         } else {
             if (await auth.verifyToken(req, res)) {
                 const actions = {
-                    "user": ["Editar información", "Consultar certificado de tradición", "Crear PQRSD"],
-                    "admin": ["Editar información", "Hacer administradores a otros usuarios", "Crear certificado de tradición", "Modificar certificado de tradición", "Crear PQRSD", "Modificar PQRSD"]
+                    "user": ["Editar información", "Consultar certificado de transacciones", "Crear PQRSD","Consultar PQRSD"],
+                    "admin": ["Editar información", "Hacer administradores a otros usuarios", "Crear certificado de transacciones", "Modificar certificado de transacciones", "Crear PQRSD", "Modificar PQRSD","Consultar PQRSD"]
                 }
                 if (user.role === "USER") {
                     res.status(200).json({ actions: actions.user })

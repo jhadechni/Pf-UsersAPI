@@ -9,13 +9,14 @@ const { createPDFTIL } = require('../config/filesCreation')
 
 
 controller.createCertificateTIL = async (req, res) => {
-    if (!req.body.cedula || !req.body.description || !req.body.adminCedula || !req.body.valorActo || !req.body.city) { res.sendStatus(400) }
-    const isAdmin = await userModel.findOne({ cedula: req.body.adminCedula })
-    const user = await userModel.findOne({ cedula: req.body.cedula })
-    if (!isAdmin || !user) { res.status(404).json({ message: 'User or admin not found' }) }
-    if (isAdmin.role != "ADMIN") { res.status(403).send({ message: 'Action not allowed' }) }
+
     try {
-        if (!await auth.verifyToken(req, res)) { res.sendStatus(401) }
+        if (!req.body.cedula || !req.body.description || !req.body.adminCedula || !req.body.valorActo || !req.body.city) { res.sendStatus(400) }
+        const isAdmin = await userModel.findOne({ cedula: req.body.adminCedula })
+        const user = await userModel.findOne({ cedula: req.body.cedula })
+        if (!isAdmin || !user) { return res.status(404).json({ message: 'User or admin not found' }) }
+        if (isAdmin.role != "ADMIN") { return res.status(403).send({ message: 'Action not allowed' }) }
+        if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
 
         const enrollmentNumber = crypto.randomBytes(7).toString('hex')
 
@@ -53,12 +54,11 @@ controller.createCertificateTIL = async (req, res) => {
         console.log(transactionData)
 
         await transactionModel.create(transactionData)
-        res.status(201).json({ message: "Certificate created sucefully!" })
+        return res.status(201).json({ message: "Certificate created sucefully!" })
 
     } catch (error) {
         console.log(error)
-        res.status(500).json({ message: 'Server internal error' })
-
+        return res.sendStatus(500)
     }
 }
 

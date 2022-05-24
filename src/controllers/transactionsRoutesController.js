@@ -69,19 +69,19 @@ controller.updateTILCertificate = async (req, res) => {
 
 controller.verInfoTransaction = async (req, res) => {
     if (req.query.enrollmentNumber) {
-        if (!await auth.verifyToken(req, res)) { res.sendStatus(401) }
+        if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
         const transaction = await transactionModel.find({ enrollmentNumber: req.query.enrollmentNumber }, '-tx_hash')
         await createPDFTIL(transaction)
         res.download('src/outputs/salida.pdf')
     } else {
-        if (!req.query.cedula) { res.sendStatus(400) }
-        if (!await auth.verifyToken(req, res)) { res.sendStatus(401) }
+        if (!req.query.cedula) { return res.sendStatus(400) }
+        if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
         try {
             const certificados = await transactionModel.find({ cedula: req.query.cedula }, '-tx_hash')
-            res.status(200).json({ certificados: certificados })
+            return res.status(200).json({ certificados: certificados })
         } catch (error) {
             console.log(error)
-            res.status(500).json({ message: 'Server internal error' })
+            return res.status(500).json({ message: 'Server internal error' })
         }
     }
 

@@ -3,6 +3,7 @@ const userModel = require('../models/userModel')
 const transactionModel = require('../models/transactionModel')
 const crypto = require('crypto')
 const axios = require('axios')
+const auth = require('../config/auth')
 const { createPDFTIL } = require('../config/filesCreation')
 
 
@@ -10,11 +11,13 @@ const { createPDFTIL } = require('../config/filesCreation')
 controller.createCertificateTIL = async (req, res) => {
     if (!req.body.cedula || !req.body.description || !req.body.adminCedula || !req.body.valorActo || !req.body.city) { res.sendStatus(400) }
     const isAdmin = await userModel.findOne({ cedula: req.body.adminCedula })
-    if(!isAdmin){res.status(404).json({message : 'User not found'})}
+    const user = await userModel.findOne({ cedula: req.body.cedula })
+    console.log(user.name)
+    if (!isAdmin || !user) { res.status(404).json({ message: 'User or admin not found' }) }
     if (isAdmin.role != "ADMIN") { res.status(403).send({ message: 'Action not allowed' }) }
     try {
         if (!await auth.verifyToken(req, res)) { res.sendStatus(401) }
-        const user = await userModel.find({ cedula: req.body.cedula })
+
         const enrollmentNumber = crypto.randomBytes(7).toString('hex')
 
         const metadata = {
@@ -26,13 +29,12 @@ controller.createCertificateTIL = async (req, res) => {
             "city": req.body.city
         }
 
-        const payload = {
+        const data = {
             "metadata": metadata,
             "ownerPk": user.blockchain_PK,
             "authPk": isAdmin.blockchain_PK
         }
-
-        const response = await axios.post(process.env.BLOCKCHAIN_API_URI.concat('/certificate/create'), { payload }) || 'Couldnt communicate'
+        const response = await axios.post(process.env.BLOCKCHAIN_API_URI.concat('/certificate/create'), { data }) || 'Couldnt communicate'
 
         const transactionData = {
             "enrollmentNumber": enrollmentNumber,
@@ -42,18 +44,18 @@ controller.createCertificateTIL = async (req, res) => {
             "prevOwner": response.data.prevOwner,
             "actualOwner": response.data.currentOwner,
             "status": response.data.status,
-            "timeStamp": response.data.date,
+            "timeStamp": response.data.timestamp,
             "actValue": metadata.actValue,
             "description": metadata.description,
             "adminId": isAdmin.cedula,
             "type": "CTRA"
         }
+        console.log(transactionData)
 
         await transactionModel.create(transactionData)
         res.status(201).json({ message: "Certificate created sucefully!" })
 
     } catch (error) {
-
         console.log(error)
         res.status(500).json({ message: 'Server internal error' })
 
@@ -69,8 +71,8 @@ controller.verInfoTransaction = async (req, res) => {
     if (req.query.enrollmentNumber) {
         if (!await auth.verifyToken(req, res)) { res.sendStatus(401) }
         const transaction = await transactionModel.find({ enrollmentNumber: req.query.enrollmentNumber }, '-tx_hash')
-        createPDFTIL(transaction)
-        res.download('./salida.pdf')
+        await createPDFTIL(transaction)
+        res.download('src/outputs/salida.pdf')
     } else {
         if (!req.query.cedula) { res.sendStatus(400) }
         if (!await auth.verifyToken(req, res)) { res.sendStatus(401) }
@@ -85,7 +87,7 @@ controller.verInfoTransaction = async (req, res) => {
 
 }
 
-controller.createCertificatePQRSD = async (req,res) => {
+controller.createCertificatePQRSD = async (req, res) => {
     if (!req.body.cedula || !req.body.description || !req.body.adminCedula || !req.body.valorActo || !req.body.city) { res.sendStatus(400) }
 }
 

@@ -25,7 +25,18 @@ controller.createPDFTIL = (transactions) =>  {
                                  .replace("{{enrollmentNumber}}", transactions[0].enrollmentNumber)
                                  .replace("{{status}}", transactions[transactions.length - 1].status)
     console.log(contenidoHtml)
-    pdf.create(contenidoHtml).toFile('src/output/salida.pdf');
+    pdf.create(contenidoHtml).toFile('src/outputs/salida.pdf', function (err, result) {
+        if (err) {
+            console.log(err);
+            return err
+        } else {
+            //console.log(result);
+            //res.send(result);
+            //res.download('./salida.pdf')
+            console.log(result)
+            return result
+        }
+    });
 }
 
 

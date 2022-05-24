@@ -12,7 +12,6 @@ controller.createCertificateTIL = async (req, res) => {
     if (!req.body.cedula || !req.body.description || !req.body.adminCedula || !req.body.valorActo || !req.body.city) { res.sendStatus(400) }
     const isAdmin = await userModel.findOne({ cedula: req.body.adminCedula })
     const user = await userModel.findOne({ cedula: req.body.cedula })
-    console.log(user.name)
     if (!isAdmin || !user) { res.status(404).json({ message: 'User or admin not found' }) }
     if (isAdmin.role != "ADMIN") { res.status(403).send({ message: 'Action not allowed' }) }
     try {
@@ -48,6 +47,7 @@ controller.createCertificateTIL = async (req, res) => {
             "actValue": metadata.actValue,
             "description": metadata.description,
             "adminId": isAdmin.cedula,
+            "city": metadata.city,
             "type": "CTRA"
         }
         console.log(transactionData)

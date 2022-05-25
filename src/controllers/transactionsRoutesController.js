@@ -79,9 +79,13 @@ controller.updateTILCertificate = async (req, res) => {
 
         const user = await userModel.findOne({ cedula: req.body.cedula })
 
-        if (!isAdmin || !user) { return res.status(404).json({ message: 'User or admin not found' }) }
+        const certificate = await transactionModel.findOne({enrollmentNumber: req.body.enrollmentNumber})
 
-        if (isAdmin.role != "ADMIN") { return res.status(403).send({ message: 'Action not allowed' }) }
+        if (!isAdmin || !user || !certificate) { return res.status(404).json({ message: 'User, admin or certificate not found' }) }
+
+        if(user.cedula != certificate.ownerId) {return res.status(403).json({message : 'User with this id is not the certificate owner'})}
+
+        if (isAdmin.role != "ADMIN") { return res.status(403).json({ message: 'Action not allowed' }) }
 
         if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
 
@@ -96,7 +100,7 @@ controller.updateTILCertificate = async (req, res) => {
 
         const data = {
             "metadata": metadata,
-            "tokenId": user.blockchain_PK,
+            "tokenId": certificate.b_tk_id,
             "authPk": isAdmin.blockchain_PK
         }
 
@@ -123,7 +127,7 @@ controller.updateTILCertificate = async (req, res) => {
 
         console.log(transactionData)
         await transactionModel.create(transactionData)
-        return res.status(201).json({ message: "Certificate created sucefully!" })
+        return res.status(201).json({ message: "Certificate updated sucefully!" })
 
     } catch (error) {
         console.log(error)

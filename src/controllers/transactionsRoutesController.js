@@ -46,7 +46,7 @@ controller.createCertificateTIL = async (req, res) => {
             "enrollmentNumber": enrollmentNumber,
             "cedula": metadata.ownerId,
             "tx_hash": response.data.txHash,
-            "b_tk_id":response.data.tokenId,
+            "b_tk_id": response.data.tokenId,
             "price": response.data.fee,
             "prevOwner": response.data.prevOwner,
             "actualOwner": response.data.currentOwner,
@@ -79,7 +79,7 @@ controller.updateTILCertificate = async (req, res) => {
 
         const user = await userModel.findOne({ cedula: req.body.cedula })
 
-        const certificate = await transactionModel.findOne({enrollmentNumber: req.body.enrollmentNumber})
+        const certificate = await transactionModel.findOne({ enrollmentNumber: req.body.enrollmentNumber })
 
         if (!isAdmin || !user || !certificate) { return res.status(404).json({ message: 'User, admin or certificate not found' }) }
 
@@ -111,6 +111,7 @@ controller.updateTILCertificate = async (req, res) => {
             "enrollmentNumber": metadata.enrollmentNumber,
             "cedula": metadata.ownerId,
             "tx_hash": response.data.txHash,
+            "b_tk_id" : data.tokenId,
             "price": response.data.fee,
             "prevOwner": response.data.prevOwner,
             "actualOwner": response.data.currentOwner,
@@ -140,7 +141,7 @@ controller.verInfoTransaction = async (req, res) => {
     if (req.query.enrollmentNumber) {
         if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
         const transaction = await transactionModel.find({ enrollmentNumber: req.query.enrollmentNumber }, '-tx_hash')
-        createPDFTIL(transaction)
+        await createPDFTIL(transaction)
         res.download('src/outputs/salida.pdf')
     } else {
         if (!req.query.cedula) { return res.sendStatus(400) }

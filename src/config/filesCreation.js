@@ -1,9 +1,11 @@
 const controller = {}
 var pdf = require('html-pdf');
 const fs = require("fs");
+const res = require('express/lib/response');
 
-controller.createPDFTIL = (transactions) =>  {
-    let contenidoHtml = fs.readFileSync('src/templates/templateTIL.html', 'utf8')
+controller.createPDFTIL = async (transactions) =>  {
+    try {
+        let contenidoHtml = fs.readFileSync('src/templates/templateTIL.html', 'utf8')
     let template = `
             <hr>
             <p style="text-align: left;"><strong>Descripcion:</strong></p>
@@ -37,6 +39,11 @@ controller.createPDFTIL = (transactions) =>  {
             return result
         }
     });
+        
+    } catch (error) {
+        console.log(error)
+    }
+    
 }
 
 

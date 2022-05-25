@@ -83,8 +83,6 @@ controller.updateTILCertificate = async (req, res) => {
 
         if (!isAdmin || !user || !certificate) { return res.status(404).json({ message: 'User, admin or certificate not found' }) }
 
-        if(user.cedula != certificate.ownerId) {return res.status(403).json({message : 'User with this id is not the certificate owner'})}
-
         if (isAdmin.role != "ADMIN") { return res.status(403).json({ message: 'Action not allowed' }) }
 
         if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }

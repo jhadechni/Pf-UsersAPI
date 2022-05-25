@@ -4,7 +4,7 @@ const transactionSchema = new mongoose.Schema({
     enrollmentNumber: { type: String, required: true },
     cedula: { type: String, required: true },
     tx_hash: { type: String, required: true, unique: true },
-    b_tk_id: { type: String, require: true, unique: true },
+    b_tk_id: { type: String, require: true},
     price: { type: String, required: true },
     prevOwner: { type: String, default: '' },
     actualOwner: { type: String, required: true },

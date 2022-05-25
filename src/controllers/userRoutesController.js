@@ -35,7 +35,6 @@ controller.login = async (req, res) => {
 //Register
 controller.register = async (req, res) => {
     if (!req.body.username || !req.body.password || !req.body.name || !req.body.cedula || !req.body.email) return res.sendStatus(400)
-    console.log(req.body.username)
     const user = await userModel.findOne({ cedula: req.body.cedula })
     try {
         if (!user) {
@@ -50,7 +49,8 @@ controller.register = async (req, res) => {
                 "password": req.body.password,
                 "cedula": req.body.cedula,
                 "email": req.body.email,
-                "blockchain_PK": response.data.key
+                "blockchain_PK": response.data.key,
+                "walletPublicAddress" : response.data.address
             }
             await userModel.create(info)
             const payload = {
@@ -58,13 +58,13 @@ controller.register = async (req, res) => {
                 'password': req.body.password
             }
             const accesToken = auth.createToken(payload)
-            res.status(201).json({ message: "User created sucefully!", token: accesToken })
+            return res.status(201).json({ message: "User created sucefully!", token: accesToken })
         } else {
-            res.status(208).json({ message: "User already exist" })
+            return res.status(208).json({ message: "User already exist" })
         }
     } catch (error) {
         console.log(error)
-        res.status(500).json({ data: "Server internal error", error: error })
+        return res.status(500).json({ data: "Server internal error", error: error })
     }
 }
 //get User
@@ -74,17 +74,17 @@ controller.getUser = async (req, res) => {
             if (!req.query.cedula) return res.sendStatus(400)
             const user = await userModel.findOne({ cedula: req.query.cedula }, '-password -blockchain_PK -__v -_id')
             if (!user) {
-                res.status(404).json({ data: "User not found" })
+                return res.status(404).json({ data: "User not found" })
             } else {
-                res.status(200).json(user)
+                return res.status(200).json(user)
             }
 
         } else {
-            res.sendStatus(401)
+            return res.sendStatus(401)
         }
     } catch (error) {
         console.log(error)
-        res.status(500).json({ data: "Server internal error" })
+        return res.status(500).json({ data: "Server internal error" })
     }
 }
 
@@ -93,7 +93,7 @@ controller.consultarAcciones = async (req, res) => {
         if (!req.query.cedula) return res.sendStatus(400)
         const user = await userModel.findOne({ cedula: req.query.cedula }, '-password -blockchain_PK')
         if (!user) {
-            res.status(404).json({ data: "User not found" })
+            return res.status(404).json({ data: "User not found" })
         } else {
             if (await auth.verifyToken(req, res)) {
                 const actions = {
@@ -101,18 +101,18 @@ controller.consultarAcciones = async (req, res) => {
                     "admin": ["Editar información","Consultar certificado de transacciones", "Hacer administradores a otros usuarios", "Crear certificado de transacciones", "Modificar certificado de transacciones", "Crear PQRSD", "Modificar PQRSD","Consultar PQRSD"]
                 }
                 if (user.role === "USER") {
-                    res.status(200).json({ actions: actions.user })
+                    return res.status(200).json({ actions: actions.user })
                 } else {
-                    res.status(200).json({ actions: actions.admin })
+                    return res.status(200).json({ actions: actions.admin })
                 }
             } else {
-                res.sendStatus(403)
+                return res.sendStatus(403)
             }
         }
 
     } catch (error) {
         console.log(error)
-        res.status(500).json({ data: "Server internal error" })
+        return res.status(500).json({ data: "Server internal error" })
     }
 }
 controller.editInfo = async (req, res) => {
@@ -127,13 +127,13 @@ controller.editInfo = async (req, res) => {
                 "email": req.body.newEmail,
             }
             await userModel.findOneAndUpdate({ username: req.body.username }, newUser)
-            res.sendStatus(204)
+            return res.sendStatus(204)
         } else {
-            res.sendStatus(403)
+            return res.sendStatus(403)
         }
     } catch (error) {
         console.log(error)
-        res.status(500).json({ data: "Server internal error" })
+        return res.status(500).json({ data: "Server internal error" })
     }
 }
 module.exports = controller;

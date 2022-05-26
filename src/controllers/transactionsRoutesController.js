@@ -135,7 +135,6 @@ controller.updateTILCertificate = async (req, res) => {
 
 }
 
-//TODO: fix twice clicking pdf generation
 controller.verInfoTransaction = async (req, res) => {
     if (req.query.enrollmentNumber) {
 
@@ -145,11 +144,14 @@ controller.verInfoTransaction = async (req, res) => {
 
         if(!transaction) {return res.status(404).json({message : 'Certificate with this enrollmentNumber doesnt exist.'})}
         
-        await createPDFTIL(transaction)
+        const pdf = await createPDFTIL(transaction)
 
-        res.download('src/outputs/salida.pdf')
+        res.setHeader('Content-Type', 'application/pdf')
+
+        return res.status(200).send(pdf)
 
     } else {
+
         if (!req.query.cedula) { return res.sendStatus(400) }
 
         const user = await userModel.findOne({cedula: req.query.cedula})

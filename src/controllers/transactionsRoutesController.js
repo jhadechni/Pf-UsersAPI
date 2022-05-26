@@ -42,7 +42,6 @@ controller.createCertificateTIL = async (req, res) => {
         const response = await axios.post(process.env.BLOCKCHAIN_API_URI.concat('/certificate/create'), { data }) || 'Couldnt communicate'
 
         const date = new Date(response.data.timestamp * 1000)
-        const formattedDate = date.getFullYear() + '/' + date.getMonth() + '/' + date.getDay()
 
         const transactionData = {
             "enrollmentNumber": enrollmentNumber,
@@ -53,7 +52,7 @@ controller.createCertificateTIL = async (req, res) => {
             "prevOwner": response.data.prevOwner,
             "actualOwner": response.data.currentOwner,
             "status": response.data.status,
-            "timeStamp": formattedDate,
+            "timeStamp": date.toLocaleString(),
             "actValue": metadata.actValue,
             "description": metadata.description,
             "adminId": isAdmin.cedula,
@@ -106,7 +105,6 @@ controller.updateTILCertificate = async (req, res) => {
         const response = await axios.put(process.env.BLOCKCHAIN_API_URI.concat('/certificate/update'), { data }) || 'Couldnt communicate'
 
         const date = new Date(response.data.timestamp * 1000)
-        const formattedDate = date.getFullYear() + '/' + date.getMonth() + '/' + date.getDay()
 
         const transactionData = {
             "enrollmentNumber": metadata.enrollmentNumber,
@@ -117,7 +115,7 @@ controller.updateTILCertificate = async (req, res) => {
             "prevOwner": response.data.prevOwner,
             "actualOwner": response.data.currentOwner,
             "status": response.data.status,
-            "timeStamp": formattedDate,
+            "timeStamp": date.toLocaleString(),
             "actValue": metadata.actValue,
             "description": metadata.description,
             "adminId": isAdmin.cedula,
@@ -142,11 +140,11 @@ controller.verInfoTransaction = async (req, res) => {
 
         if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
 
-        const transaction = await transactionModel.find({ enrollmentNumber: req.query.enrollmentNumber }, '-tx_hash')
+        const transactions = await transactionModel.find({ enrollmentNumber: req.query.enrollmentNumber }, '-tx_hash')
+        
+        if (transactions.length === 0) { return res.status(404).json({ message: 'Certificate with this enrollmentNumber doesnt exist.' }) }
 
-        if (!transaction) { return res.status(404).json({ message: 'Certificate with this enrollmentNumber doesnt exist.' }) }
-
-        const pdf = await createPDFTIL(transaction)
+        const pdf = await createPDFTIL(transactions)
 
         res.setHeader('Content-Type', 'application/pdf')
         return res.status(200).end(pdf)
@@ -165,7 +163,7 @@ controller.verInfoTransaction = async (req, res) => {
 
             const certificados = await transactionModel.find({ cedula: req.query.cedula }, '-tx_hash')
 
-            if (!certificados) { return res.status(404).json({ message: 'No certificates found for this user' }) }
+            if (certificados.length === 0) { return res.status(404).json({ message: 'No certificates found for this user' }) }
 
             return res.status(200).json({ certificados: certificados })
 

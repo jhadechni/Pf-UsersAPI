@@ -42,6 +42,8 @@ controller.createCertificateTIL = async (req, res) => {
         const response = await axios.post(process.env.BLOCKCHAIN_API_URI.concat('/certificate/create'), { data }) || 'Couldnt communicate'
 
         const date = new Date(response.data.timestamp * 1000)
+        const formattedDate = date.getFullYear() + '/' + date.getMonth() + '/' + date.getDay()
+
         const transactionData = {
             "enrollmentNumber": enrollmentNumber,
             "cedula": metadata.ownerId,
@@ -51,7 +53,7 @@ controller.createCertificateTIL = async (req, res) => {
             "prevOwner": response.data.prevOwner,
             "actualOwner": response.data.currentOwner,
             "status": response.data.status,
-            "timeStamp": date,
+            "timeStamp": formattedDate,
             "actValue": metadata.actValue,
             "description": metadata.description,
             "adminId": isAdmin.cedula,
@@ -104,17 +106,18 @@ controller.updateTILCertificate = async (req, res) => {
         const response = await axios.put(process.env.BLOCKCHAIN_API_URI.concat('/certificate/update'), { data }) || 'Couldnt communicate'
 
         const date = new Date(response.data.timestamp * 1000)
-        console.log(date)
+        const formattedDate = date.getFullYear() + '/' + date.getMonth() + '/' + date.getDay()
+
         const transactionData = {
             "enrollmentNumber": metadata.enrollmentNumber,
             "cedula": metadata.ownerId,
             "tx_hash": response.data.txHash,
-            "b_tk_id" : data.tokenId,
+            "b_tk_id": data.tokenId,
             "price": response.data.fee,
             "prevOwner": response.data.prevOwner,
             "actualOwner": response.data.currentOwner,
             "status": response.data.status,
-            "timeStamp": date,
+            "timeStamp": formattedDate,
             "actValue": metadata.actValue,
             "description": metadata.description,
             "adminId": isAdmin.cedula,
@@ -141,8 +144,8 @@ controller.verInfoTransaction = async (req, res) => {
 
         const transaction = await transactionModel.find({ enrollmentNumber: req.query.enrollmentNumber }, '-tx_hash')
 
-        if(!transaction) {return res.status(404).json({message : 'Certificate with this enrollmentNumber doesnt exist.'})}
-        
+        if (!transaction) { return res.status(404).json({ message: 'Certificate with this enrollmentNumber doesnt exist.' }) }
+
         const pdf = await createPDFTIL(transaction)
 
         res.setHeader('Content-Type', 'application/pdf')
@@ -153,9 +156,9 @@ controller.verInfoTransaction = async (req, res) => {
 
         if (!req.query.cedula) { return res.sendStatus(400) }
 
-        const user = await userModel.findOne({cedula: req.query.cedula})
+        const user = await userModel.findOne({ cedula: req.query.cedula })
 
-        if(!user){return res.status(404).json({message : 'No user found'})}
+        if (!user) { return res.status(404).json({ message: 'No user found' }) }
 
         if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
 
@@ -163,23 +166,23 @@ controller.verInfoTransaction = async (req, res) => {
 
             const certificados = await transactionModel.find({ cedula: req.query.cedula }, '-tx_hash')
 
-            if(!certificados) { return res.status(404).json({message : 'No certificates found for this user'})}
-            
+            if (!certificados) { return res.status(404).json({ message: 'No certificates found for this user' }) }
+
             return res.status(200).json({ certificados: certificados })
 
         } catch (error) {
 
             console.log(error)
             return res.status(500).json({ message: 'Server internal error' })
-            
+
         }
     }
 
 }
 
-controller.transferCertificateTIL = async (req,res) => {
+controller.transferCertificateTIL = async (req, res) => {
     try {
-        if (!req.body.actualCedula ||!req.body.newCedula || !req.body.description || !req.body.adminCedula || !req.body.valorActo || !req.body.city || !req.body.enrollmentNumber) { return res.sendStatus(400) }
+        if (!req.body.actualCedula || !req.body.newCedula || !req.body.description || !req.body.adminCedula || !req.body.valorActo || !req.body.city || !req.body.enrollmentNumber) { return res.sendStatus(400) }
 
         const isAdmin = await userModel.findOne({ cedula: req.body.adminCedula })
 
@@ -219,7 +222,7 @@ controller.transferCertificateTIL = async (req,res) => {
             "enrollmentNumber": metadata.enrollmentNumber,
             "cedula": metadata.ownerId,
             "tx_hash": response.data.txHash,
-            "b_tk_id" : data.tokenId,
+            "b_tk_id": data.tokenId,
             "price": response.data.fee,
             "prevOwner": response.data.prevOwner,
             "actualOwner": response.data.currentOwner,

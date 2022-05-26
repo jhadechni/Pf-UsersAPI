@@ -9,7 +9,7 @@ const transactionSchema = new mongoose.Schema({
     prevOwner: { type: String, default: '' },
     actualOwner: { type: String, required: true },
     status: { type: String, required: true },
-    timeStamp: { type: Number, required: true },
+    timeStamp: { type: String, required: true },
     description: { type: String, required: true },
     actValue: { type: String, required: true },
     adminId: { type: String, required: true },

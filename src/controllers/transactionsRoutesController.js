@@ -162,6 +162,9 @@ controller.verInfoTransaction = async (req, res) => {
         try {
 
             const certificados = await transactionModel.find({ cedula: req.query.cedula }, '-tx_hash')
+
+            if(!certificados) { return res.status(404).json({message : 'No certificates found for this user'})}
+            
             return res.status(200).json({ certificados: certificados })
 
         } catch (error) {
@@ -172,6 +175,72 @@ controller.verInfoTransaction = async (req, res) => {
         }
     }
 
+}
+
+controller.transferCertificateTIL = async (req,res) => {
+    try {
+        if (!req.body.actualCedula ||!req.body.newCedula || !req.body.description || !req.body.adminCedula || !req.body.valorActo || !req.body.city || !req.body.enrollmentNumber) { return res.sendStatus(400) }
+
+        const isAdmin = await userModel.findOne({ cedula: req.body.adminCedula })
+
+        const user = await userModel.findOne({ cedula: req.body.actualCedula })
+
+        const newUser = await userModel.findOne({ cedula: req.body.newCedula })
+
+        const certificate = await transactionModel.findOne({ enrollmentNumber: req.body.enrollmentNumber })
+
+        if (!isAdmin || !user || !certificate || !newUser) { return res.status(404).json({ message: 'User, admin or certificate not found' }) }
+
+        if (isAdmin.role != "ADMIN") { return res.status(403).json({ message: 'Action not allowed' }) }
+
+        if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
+
+        const metadata = {
+            "enrollmentNumber": req.body.enrollmentNumber,
+            "ownerId": newUser.cedula,
+            "adminId": isAdmin.cedula,
+            "description": req.body.description,
+            "actValue": req.body.valorActo,
+            "city": req.body.city
+        }
+
+        const data = {
+            "metadata": metadata,
+            "tokenId": certificate.b_tk_id,
+            "authPk": isAdmin.blockchain_PK
+        }
+
+        console.log(data)
+        const response = await axios.put(process.env.BLOCKCHAIN_API_URI.concat('/certificate/transfer'), { data }) || 'Couldnt communicate'
+
+        const date = new Date(response.data.timestamp * 1000)
+        console.log(date)
+        const transactionData = {
+            "enrollmentNumber": metadata.enrollmentNumber,
+            "cedula": metadata.ownerId,
+            "tx_hash": response.data.txHash,
+            "b_tk_id" : data.tokenId,
+            "price": response.data.fee,
+            "prevOwner": response.data.prevOwner,
+            "actualOwner": response.data.currentOwner,
+            "status": response.data.status,
+            "timeStamp": date,
+            "actValue": metadata.actValue,
+            "description": metadata.description,
+            "adminId": isAdmin.cedula,
+            "city": metadata.city,
+            "type": "CTRA"
+        }
+
+        console.log(transactionData)
+        await transactionModel.create(transactionData)
+        return res.status(200).json({ message: "Certificate updated sucefully!" })
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ message: 'Server internal error' })
+
+    }
 }
 
 controller.createCertificatePQRSD = async (req, res) => {

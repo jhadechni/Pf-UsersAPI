@@ -29,7 +29,7 @@ controller.createPDFTIL = async (transactions) => {
             .replace("{{enrollmentNumber}}", transactions[0].enrollmentNumber)
             .replace("{{status}}", transactions[transactions.length - 1].status)
         console.log(contenidoHtml)
-        const options = { format: 'A4' };
+        const options = {  "format": "Letter", };
         const pdfBuffer = await createPDF(contenidoHtml,options)
        
         console.log(pdfBuffer)

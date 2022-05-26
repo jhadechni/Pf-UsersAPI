@@ -31,9 +31,6 @@ controller.createPDFTIL = async (transactions) => {
         console.log(contenidoHtml)
         const options = {  "format": "Letter", };
         const pdfBuffer = await createPDF(contenidoHtml,options)
-       
-        console.log(pdfBuffer)
-
 
         return pdfBuffer
 

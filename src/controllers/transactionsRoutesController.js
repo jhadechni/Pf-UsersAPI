@@ -149,7 +149,6 @@ controller.verInfoTransaction = async (req, res) => {
         const pdf = await createPDFTIL(transaction)
 
         res.setHeader('Content-Type', 'application/pdf')
-        console.log(pdf.length)
         return res.status(200).end(pdf)
 
     } else {

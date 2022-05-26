@@ -144,10 +144,10 @@ controller.verInfoTransaction = async (req, res) => {
         if(!transaction) {return res.status(404).json({message : 'Certificate with this enrollmentNumber doesnt exist.'})}
         
         const pdf = await createPDFTIL(transaction)
-        console.log(pdf)
-        res.setHeader('Content-Type', 'application/pdf')
 
-        return res.status(200).send(pdf)
+        res.setHeader('Content-Type', 'application/pdf')
+        console.log(pdf.length)
+        return res.status(200).end(pdf)
 
     } else {
 

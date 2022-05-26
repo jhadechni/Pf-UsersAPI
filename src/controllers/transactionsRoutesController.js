@@ -4,7 +4,6 @@ const transactionModel = require('../models/transactionModel')
 const crypto = require('crypto')
 const axios = require('axios')
 const auth = require('../config/auth')
-
 const { createPDFTIL } = require('../config/filesCreation')
 
 
@@ -145,7 +144,7 @@ controller.verInfoTransaction = async (req, res) => {
         if(!transaction) {return res.status(404).json({message : 'Certificate with this enrollmentNumber doesnt exist.'})}
         
         const pdf = await createPDFTIL(transaction)
-
+        console.log(pdf)
         res.setHeader('Content-Type', 'application/pdf')
 
         return res.status(200).send(pdf)
@@ -174,7 +173,6 @@ controller.verInfoTransaction = async (req, res) => {
     }
 
 }
-
 
 controller.createCertificatePQRSD = async (req, res) => {
     if (!req.body.cedula || !req.body.description || !req.body.valorActo || !req.body.city) { return res.sendStatus(400) }

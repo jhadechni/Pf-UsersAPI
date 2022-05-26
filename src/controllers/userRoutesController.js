@@ -30,8 +30,6 @@ controller.login = async (req, res) => {
         res.status(500).json({ data: "Server internal error" })
     }
 }
-
-
 //Register
 controller.register = async (req, res) => {
     if (!req.body.username || !req.body.password || !req.body.name || !req.body.cedula || !req.body.email) return res.sendStatus(400)
@@ -87,7 +85,7 @@ controller.getUser = async (req, res) => {
         return res.status(500).json({ data: "Server internal error" })
     }
 }
-
+//Get actions
 controller.consultarAcciones = async (req, res) => {
     try {
         if (!req.query.cedula) return res.sendStatus(400)
@@ -115,6 +113,7 @@ controller.consultarAcciones = async (req, res) => {
         return res.status(500).json({ data: "Server internal error" })
     }
 }
+//Edit info
 controller.editInfo = async (req, res) => {
     try {
         if (await auth.verifyToken(req, res)) {

@@ -5,22 +5,26 @@ const res = require('express/lib/response');
 
 controller.createPDFTIL = async (transactions) =>  {
     try {
-        let contenidoHtml = fs.readFileSync('src/templates/templateTIL.html', 'utf8')
+    //fs.unlinkSync('src/outputs/salida.pdf')
+ 
+    let contenidoHtml = fs.readFileSync('src/templates/templateTIL.html', 'utf8')
     let template = `
             <hr>
             <p style="text-align: left;"><strong>Descripcion:</strong></p>
             <p style="text-align: left;"><strong>DE:</strong> {{prevOwner}}<br /><strong>A:</strong> {{actualOwner}}</p>
             <p style="text-align: left;">{{description}}
-            <p style="text-align: left;">{{adminID}}
+            <p style="text-align: left;">Cedula admin: {{adminID}}
             </p>`;
     let contenido = ``
-    transactions.map((element) => {
+    await Promise.all(transactions.map((element) => {
         newData = template.replace("{{prevOwner}}", element.prevOwner)
                           .replace("{{actualOwner}}", element.actualOwner)
                           .replace("{{description}}", element.description)
                           .replace("{{adminID}}", element.adminId)
+                          .replace("null", "X")
         contenido += newData
-    })
+        return contenido
+    }))
     
     contenidoHtml = contenidoHtml.replace("{{descriptionALL}}", contenido)
                                  .replace("{{city}}", transactions[0].city)
@@ -32,10 +36,6 @@ controller.createPDFTIL = async (transactions) =>  {
             console.log(err);
             return err
         } else {
-            //console.log(result);
-            //res.send(result);
-            //res.download('./salida.pdf')
-            console.log(result)
             return result
         }
     });

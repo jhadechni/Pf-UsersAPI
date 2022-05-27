@@ -57,7 +57,7 @@ controller.register = async (req, res) => {
                 'username': req.body.username,
                 'password': req.body.password
             }
-            sendWelcomeMessage(req.body.email)
+            await sendWelcomeMessage(info)
             const accesToken = auth.createToken(payload)
             return res.status(201).json({ message: "User created sucefully!", token: accesToken })
         } else {

@@ -2,7 +2,7 @@ const controller = {}
 var nodemailer = require('nodemailer');
 const fs = require("fs").promises;
 
-controller.sendWelcomeMessage = async (to) => {
+controller.sendWelcomeMessage = async (user) => {
     let contenidoHtml = await fs.readFile('src/templates/emailTemplate.html', 'utf8')
 
     const transporter = nodemailer.createTransport({
@@ -12,14 +12,15 @@ controller.sendWelcomeMessage = async (to) => {
             pass: process.env.EMAIL_PASSWORD
         }
     });
-
+    contenidoHtml.replace('{{name}}', user.name)
     let info = await transporter.sendMail({
         from: process.env.EMAIL_DIRECTION, // sender address
-        to: to, // list of receivers
+        to: user.email, // list of receivers
         subject: "Bienvenido a eOrip App ✔", // Subject line
         text: "Hello world?", // plain text body
         html: contenidoHtml, // html body
       });
+      console.log(info)
 }
 
 

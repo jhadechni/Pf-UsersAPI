@@ -52,12 +52,14 @@ controller.register = async (req, res) => {
                 "blockchain_PK": response.data.key,
                 "walletPublicAddress": response.data.address
             }
+           
             await userModel.create(info)
             const payload = {
                 'username': req.body.username,
                 'password': req.body.password
             }
             await sendWelcomeMessage(info)
+            
             const accesToken = auth.createToken(payload)
             return res.status(201).json({ message: "User created sucefully!", token: accesToken })
         } else {

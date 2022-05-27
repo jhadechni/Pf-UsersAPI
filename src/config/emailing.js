@@ -12,15 +12,16 @@ controller.sendWelcomeMessage = async (user) => {
             pass: process.env.EMAIL_PASSWORD
         }
     });
-    contenidoHtml.replace('{{name}}', user.name)
+
+   contenidoHtml = contenidoHtml.replace("{{name}}", user.name)
+                                .replace("{{surname}}", user.surnames)
+
     let info = await transporter.sendMail({
-        from: process.env.EMAIL_DIRECTION, // sender address
-        to: user.email, // list of receivers
-        subject: "Bienvenido a eOrip App ✔", // Subject line
-        text: "Hello world?", // plain text body
-        html: contenidoHtml, // html body
+        from: process.env.EMAIL_DIRECTION,
+        to: user.email,
+        subject: "Bienvenido a eOrip App ✔", 
+        html: contenidoHtml, 
       });
-      console.log(info)
 }
 
 

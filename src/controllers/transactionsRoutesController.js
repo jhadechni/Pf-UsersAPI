@@ -4,6 +4,7 @@ const transactionModel = require('../models/transactionModel')
 const crypto = require('crypto')
 const axios = require('axios')
 const auth = require('../config/auth')
+const { infoTransactionQuery } = require('../queries/pipelines')
 const { createPDFTIL } = require('../config/filesCreation')
 
 
@@ -141,7 +142,7 @@ controller.verInfoTransaction = async (req, res) => {
         if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
 
         const transactions = await transactionModel.find({ enrollmentNumber: req.query.enrollmentNumber }, '-tx_hash')
-        
+
         if (transactions.length === 0) { return res.status(404).json({ message: 'Certificate with this enrollmentNumber doesnt exist.' }) }
 
         const pdf = await createPDFTIL(transactions)
@@ -160,9 +161,10 @@ controller.verInfoTransaction = async (req, res) => {
         if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
 
         try {
+            const certificados = await transactionModel.aggregate(infoTransactionQuery)
 
-            const certificados = await transactionModel.find({ cedula: req.query.cedula }, '-tx_hash')
-
+            console.log("hello")
+            
             if (certificados.length === 0) { return res.status(404).json({ message: 'No certificates found for this user' }) }
 
             return res.status(200).json({ certificados: certificados })

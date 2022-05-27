@@ -1,5 +1,6 @@
 const controller = {}
 const userModel = require('../models/userModel.js')
+const transactionModel = require('../models/transactionModel')
 const auth = require('../config/auth')
 const bcrypt = require('bcrypt')
 const axios = require('axios')
@@ -48,7 +49,7 @@ controller.register = async (req, res) => {
                 "cedula": req.body.cedula,
                 "email": req.body.email,
                 "blockchain_PK": response.data.key,
-                "walletPublicAddress" : response.data.address
+                "walletPublicAddress": response.data.address
             }
             await userModel.create(info)
             const payload = {
@@ -70,12 +71,25 @@ controller.getUser = async (req, res) => {
     try {
         if (await auth.verifyToken(req, res)) {
             if (!req.query.cedula) return res.sendStatus(400)
-            const user = await userModel.findOne({ cedula: req.query.cedula }, '-password -blockchain_PK -__v -_id')
-            if (!user) {
+
+            const userSaved = await userModel.findOne({ cedula: req.query.cedula }, '-password -blockchain_PK -__v -_id')
+
+            if (!userSaved) {
                 return res.status(404).json({ data: "User not found" })
-            } else {
-                return res.status(200).json(user)
             }
+            const pqrsd = await transactionModel.find({type : 'PQRSD'})
+            const certificates = await transactionModel.find({type : 'CTRA'})
+            
+            const user = {
+                ...userSaved._doc,
+                "numOfPQRSD" : pqrsd.length,
+                "numOfCertificates" : certificates.length
+            }
+
+            console.log(user)
+
+            return res.status(200).json(user)
+
 
         } else {
             return res.sendStatus(401)
@@ -95,8 +109,8 @@ controller.consultarAcciones = async (req, res) => {
         } else {
             if (await auth.verifyToken(req, res)) {
                 const actions = {
-                    "user": ["Editar información", "Consultar certificado de transacciones", "Crear PQRSD","Consultar PQRSD"],
-                    "admin": ["Editar información","Consultar certificado de transacciones", "Hacer administradores a otros usuarios", "Crear certificado de transacciones", "Modificar certificado de transacciones", "Crear PQRSD", "Modificar PQRSD","Consultar PQRSD"]
+                    "user": ["Editar información", "Consultar certificado de transacciones", "Crear PQRSD", "Consultar PQRSD"],
+                    "admin": ["Editar información", "Consultar certificado de transacciones", "Hacer administradores a otros usuarios", "Crear certificado de transacciones", "Modificar certificado de transacciones", "Crear PQRSD", "Modificar PQRSD", "Consultar PQRSD"]
                 }
                 if (user.role === "USER") {
                     return res.status(200).json({ actions: actions.user })

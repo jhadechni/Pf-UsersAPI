@@ -9,6 +9,7 @@ const { createPDFTIL } = require('../config/filesCreation')
 
 
 
+//TIL Certificates
 controller.createCertificateTIL = async (req, res) => {
 
     try {
@@ -243,6 +244,7 @@ controller.transferCertificateTIL = async (req, res) => {
     }
 }
 
+//PQRSD Certificates
 controller.createCertificatePQRSD = async (req, res) => {
     if (!req.body.cedula || !req.body.description || !req.body.valorActo || !req.body.city) { return res.sendStatus(400) }
 

@@ -8,19 +8,23 @@ controller.createPDFTIL = async (transactions) => {
 
         let contenidoHtml = await fs.readFile('src/templates/templateTIL.html', 'utf8')
         let template = `
-            <hr>
-            <p style="text-align: left;"><strong>Descripcion:</strong></p>
-            <p style="text-align: left;"><strong>DE:</strong> {{prevOwner}}<br /><strong>A:</strong> {{actualOwner}}</p>
-            <p style="text-align: left;">{{description}}
-            <p style="text-align: left;">Cedula admin: {{adminID}}
-            </p>`;
+        <hr />
+        <p style="text-align: left"><strong>ANOTACION:</strong>  {{fecha}} Radicación: S/N</p>   <p style="text-align: right"><strong>VALOR ACTO:</strong> {{actValor}} </p>
+        <p style="text-align: left">
+          <strong>DE:</strong> {{prevOwner}}<br /><strong>A:</strong>
+          C.C {{actualOwner}}
+        </p>
+        <p style="text-align: left">{{description}}</p>
+        <p style="text-align: left">Cedula admin: {{adminID}}</p>`;
         let contenido = ``
         transactions.forEach((element) => {
             newData = template.replace("{{prevOwner}}", element.prevOwner)
-                .replace("{{actualOwner}}", element.actualOwner)
+                .replace("{{actualOwner}}", element.cedula)
                 .replace("{{description}}", element.description)
                 .replace("{{adminID}}", element.adminId)
                 .replace("null", "X")
+                .replace("{{actValor}}", new Intl.NumberFormat('en-CO', {style: 'currency',currency: 'COP', minimumFractionDigits: 2}).format(element.actValue))
+                .replace("{{fecha}}", new Date(element.timeStamp).toLocaleString())
             contenido += newData
         })
 
@@ -28,9 +32,9 @@ controller.createPDFTIL = async (transactions) => {
             .replace("{{city}}", transactions[0].city)
             .replace("{{enrollmentNumber}}", transactions[0].enrollmentNumber)
             .replace("{{status}}", transactions[transactions.length - 1].status)
-        console.log(contenidoHtml)
-        const options = {  "format": "Letter", };
-        const pdfBuffer = await createPDF(contenidoHtml,options)
+
+        const options = { "format": "Letter", };
+        const pdfBuffer = await createPDF(contenidoHtml, options)
 
         return pdfBuffer
 
@@ -40,9 +44,9 @@ controller.createPDFTIL = async (transactions) => {
 
 }
 
-function createPDF(html,options) {
+function createPDF(html, options) {
     return new Promise((resolve, reject) => {
-        pdf.create(html,options).toBuffer(function (err, buffer) {
+        pdf.create(html, options).toBuffer(function (err, buffer) {
             if (err) {
                 reject(err)
             }

@@ -8,7 +8,6 @@ const { infoTransactionQuery } = require('../queries/pipelines')
 const { createPDFTIL } = require('../config/filesCreation')
 
 
-
 //TIL Certificates
 controller.createCertificateTIL = async (req, res) => {
 
@@ -138,6 +137,7 @@ controller.updateTILCertificate = async (req, res) => {
 }
 
 controller.verInfoTransaction = async (req, res) => {
+   
     if (req.query.enrollmentNumber) {
 
         if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }

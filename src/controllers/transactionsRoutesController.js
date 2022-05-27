@@ -178,6 +178,28 @@ controller.verInfoTransaction = async (req, res) => {
 
 }
 
+controller.verInfoAllTransactions = async (req,res) => {
+    try {
+
+        if(!req.query.cedula) {return res.sendStatus(400)}
+
+        if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
+
+        const certificados = await transactionModel.find({cedula : req.query.cedula})
+
+        if (certificados.length === 0) { return res.status(404).json({ message: 'No certificates found for this user' }) }
+        
+        return res.status(200).json({ certificados: certificados })
+
+    } catch (error) {
+
+        console.log(error)
+
+        return res.status(500).json({message : "Server internal error"})
+
+    }
+}
+
 controller.transferCertificateTIL = async (req, res) => {
     try {
         if (!req.body.actualCedula || !req.body.newCedula || !req.body.description || !req.body.adminCedula || !req.body.valorActo || !req.body.city || !req.body.enrollmentNumber) { return res.sendStatus(400) }

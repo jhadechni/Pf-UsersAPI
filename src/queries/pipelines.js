@@ -3,40 +3,24 @@ const controller = {}
 
 controller.infoTransactionQuery = [
     {
+        $sort: {
+            timeStamp : -1
+        }
+    },
+    {
         $group: {
             _id: '$enrollmentNumber',
-            count: {
-                $sum: 1,
-            },
             items: {
                 $push: '$$ROOT'
             }
         }
     },
     {
-        $unwind: {
-            path: '$items'
-
-        }
-    },
-    {
-        $sort: {
-            'times.timestamp': -1
-        }
-    },
-    {
-        $group: {
-            _id: '$_id',
-            item: {
+        $replaceRoot: {
+            newRoot: {
                 $first: '$items'
             }
-
         }
-    },
-    {
-        $replaceRoot : {
-            newRoot: '$item'
-          }
     }
 ]
 

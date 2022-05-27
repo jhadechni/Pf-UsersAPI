@@ -163,10 +163,8 @@ controller.verInfoTransaction = async (req, res) => {
         try {
             const certificados = await transactionModel.aggregate(infoTransactionQuery)
 
-            console.log("hello")
-            
             if (certificados.length === 0) { return res.status(404).json({ message: 'No certificates found for this user' }) }
-
+           
             return res.status(200).json({ certificados: certificados })
 
         } catch (error) {

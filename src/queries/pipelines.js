@@ -1,10 +1,15 @@
 const controller = {}
 
 
-controller.infoTransactionQuery = [
+controller.infoTransactionQuery = (valor) => [
+    {
+        $match: {
+            cedula: valor
+        }
+    },
     {
         $sort: {
-            timeStamp : -1
+            timeStamp: -1
         }
     },
     {

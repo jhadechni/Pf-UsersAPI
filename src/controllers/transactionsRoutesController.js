@@ -162,7 +162,7 @@ controller.verInfoTransaction = async (req, res) => {
         if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
 
         try {
-            const certificados = await transactionModel.aggregate(infoTransactionQuery)
+            const certificados = await transactionModel.aggregate(infoTransactionQuery(req.query.cedula))
 
             if (certificados.length === 0) { return res.status(404).json({ message: 'No certificates found for this user' }) }
            

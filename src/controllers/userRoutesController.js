@@ -81,16 +81,14 @@ controller.getUser = async (req, res) => {
             if (!userSaved) {
                 return res.status(404).json({ data: "User not found" })
             }
-            const pqrsd = await transactionModel.find({type : 'PQRSD'})
-            const certificates = await transactionModel.find({type : 'CTRA'})
+            const pqrsd = await transactionModel.find({type : 'PQRSD', cedula : userSaved.cedula})
+            const certificates = await transactionModel.find({type : 'CTRA' , cedula : userSaved.cedula})
             
             const user = {
                 ...userSaved._doc,
                 "numOfPQRSD" : pqrsd.length,
                 "numOfCertificates" : certificates.length
             }
-
-            console.log(user)
 
             return res.status(200).json(user)
 

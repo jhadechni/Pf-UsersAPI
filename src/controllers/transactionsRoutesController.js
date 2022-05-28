@@ -207,14 +207,16 @@ controller.transferCertificateTIL = async (req, res) => {
         const isAdmin = await userModel.findOne({ cedula: req.body.adminCedula })
 
         const user = await userModel.findOne({ cedula: req.body.actualCedula })
-
+        
         const newUser = await userModel.findOne({ cedula: req.body.newCedula })
 
         const certificate = await transactionModel.findOne({ enrollmentNumber: req.body.enrollmentNumber })
 
-        if (!isAdmin || !user || !certificate || !newUser) { return res.status(404).json({ message: 'User, admin or certificate not found' }) }
+        if (!isAdmin || !user || !certificate || !newUser) { return res.status(404).json({ message: 'Users, admin or certificate not found' }) }
 
         if (isAdmin.role != "ADMIN") { return res.status(403).json({ message: 'Action not allowed' }) }
+
+        if(user.walletPublicAddress != certificate.actualOwner){return res.status(403).json({message: 'This certificate doesnt belong to this user'})}
 
         if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
 
@@ -228,16 +230,17 @@ controller.transferCertificateTIL = async (req, res) => {
         }
 
         const data = {
+            "fromPK" : user.blockchain_PK,
+            "toPK" : newUser.blockchain_PK,
             "metadata": metadata,
             "tokenId": certificate.b_tk_id,
-            "authPk": isAdmin.blockchain_PK
         }
 
         console.log(data)
-        const response = await axios.put(process.env.BLOCKCHAIN_API_URI.concat('/certificate/transfer'), { data }) || 'Couldnt communicate'
+        const response = await axios.post(process.env.BLOCKCHAIN_API_URI.concat('/certificate/transfer'), {data} ) || 'Couldnt communicate'
 
         const date = new Date(response.data.timestamp * 1000)
-        console.log(date)
+        
         const transactionData = {
             "enrollmentNumber": metadata.enrollmentNumber,
             "cedula": metadata.ownerId,
@@ -255,9 +258,9 @@ controller.transferCertificateTIL = async (req, res) => {
             "type": "CTRA"
         }
 
-        console.log(transactionData)
+        
         await transactionModel.create(transactionData)
-        return res.status(200).json({ message: "Certificate updated sucefully!" })
+        return res.status(200).json({ message: "Certificate tranfered sucefully!" })
 
     } catch (error) {
         console.log(error)
@@ -268,7 +271,7 @@ controller.transferCertificateTIL = async (req, res) => {
 
 //PQRSD Certificates
 controller.createCertificatePQRSD = async (req, res) => {
-    if (!req.body.cedula || !req.body.description || !req.body.valorActo || !req.body.city) { return res.sendStatus(400) }
+    if (!req.body.cedula || !req.body.description) { return res.sendStatus(400) }
 
     const user = await userModel.findOne({ cedula: req.body.cedula })
 

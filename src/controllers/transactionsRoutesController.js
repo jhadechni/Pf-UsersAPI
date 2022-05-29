@@ -4,7 +4,7 @@ const transactionModel = require('../models/transactionModel')
 const crypto = require('crypto')
 const axios = require('axios')
 const auth = require('../config/auth')
-const { infoTransactionQuery } = require('../queries/pipelines')
+const { infoTransactionQuery, infoTransactionQuerybyEnrollment } = require('../queries/pipelines')
 const { createPDFTIL, createPDFPQRSD } = require('../config/filesCreation')
 
 //TIL Certificates
@@ -493,11 +493,11 @@ controller.verInfoTransactionPQRSD = async (req, res) => {
         if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
 
         try {
-            const transactions = await transactionModel.find({ enrollmentNumber: req.query.enrollmentNumber, type: 'PQRSD' }, '-tx_hash')
-
+            const transactions = await transactionModel.aggregate(infoTransactionQuerybyEnrollment(req.query.enrollmentNumber,'PQRSD'))
+            console.log(transactions[0])
             if (transactions.length === 0) { return res.status(404).json({ message: 'Certificate with this enrollmentNumber doesnt exist.' }) }
 
-            const pdf = await createPDFPQRSD(transactions)
+            const pdf = await createPDFPQRSD(transactions[0])
 
             res.setHeader('Content-Type', 'application/pdf')
             return res.status(200).end(pdf)

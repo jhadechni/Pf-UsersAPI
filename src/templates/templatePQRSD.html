@@ -1,0 +1,106 @@
+<html>
+  <head>
+    <style type="text/css">
+      body {
+        color: black;
+        display: table;
+        font-family: "Roboto", sans-serif;
+        font-size: 10px;
+        text-align: center;
+        margin: auto;
+        justify-content: center;
+        align-items: center;
+      }
+
+      img {
+        width: 140px;
+        height: 55px;
+        
+      }
+      td {
+  border:0.5px solid black;
+  
+}
+      .tg  {border-collapse:collapse;border-spacing:0;justify-content:center;text-align: center;width: 70%;}
+.tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:10px;
+  overflow:hidden;word-break:normal;}
+.tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:10px;
+  font-weight:normal;overflow:hidden;word-break:normal;}
+.tg .tg-0lax{text-align:left;vertical-align:top}
+.tg .tg-0pky{border-color:inherit;text-align:left;vertical-align:top}
+      
+      .watermark {
+    opacity: 0.25;
+    color: BLACK;
+        font-size: 75px;
+        font-weight: BOLD;
+ position: relative;
+top: -250px; left: -10px;
+       transform: rotate(-45deg);
+
+}Ï
+    </style>
+  </head>
+
+  <body>
+    <h1>
+    
+    </h1>
+    <table class="tg">
+<thead>
+  <tr>
+    <td class="tg-0lax" rowspan="3">   <img
+     src="https://cdn.discordapp.com/attachments/833897513349021706/976507152191606834/Screen_Shot_2022-05-18_at_10.30.15_AM.png"
+        alt=""
+      /></td>
+    <td class="tg-0lax"> <h6>PROCESO:DESARROLLO Y FORTALECIMIENTO INSTITUCIONAL PARA EL SERVICIO AL CIUDADANO</h6></td>
+    <td class="tg-0pky"> <h6>CÓDIGO: GCSCA-PR-01</h6></td>
+  </tr>
+  <tr>
+    <td class="tg-0lax"><h6>PROCEDIMIENTO: LINEAMIENTOS PARA LA ORIENTACIÓN Y SERVICIO AL CIUDADANO A TRAVÉS DE LOS CANALES DE ATENCION</h6></td>
+    <td class="tg-0lax"><h6>VERSIÓN:05</h6></td>
+  </tr>
+  <tr>
+    <td class="tg-0lax"><h6>FORMATO:PETICIONES, QUEJAS, RECLAMOS, SUGERENCIAS Y DENUNCIAS - PQRSD</h6></td>
+    <td class="tg-0lax"><h6>{{fecha}}</h6></td>
+  </tr>
+</thead>
+</table>
+    
+    <h3>FORMATO DE PETICIONES, QUEJAS, RECLAMOS, SUGERENCIAS Y DENUNCIAS - PQRSD</h3>
+  
+    <p><strong>Numero de matricula:</strong> {{enrollmentNumber}}</p>
+    <h4>
+      <strong>Estado: {{status}}</strong>
+    </h4>
+    
+    <div id="pageHeader">
+      <p>eOrip Office</p>
+    </div>
+    <hr />
+
+    <div>
+       <p style="text-align: left"><strong>FECHA:</strong>  {{fecha}}</p> <p style="text-align: right"><strong>CIUDAD:</strong> {{ciudad}}</p>
+    </div>
+    <p style="text-align: left">
+      <strong>SOLICITANTE:</strong> {{owner}}<br /><strong>A:</strong>
+    </p>
+    <p style="text-align: left">{{description}}</p>
+    <p style="text-align: left">Cedula admin: {{adminID}}</p>
+        <div class="watermark">
+           eORIP <br/> OFFICE
+    </div>
+
+    <div id="pageFooter" style="border-top: 1px solid #ddd; padding-top: 5px">
+      <p>
+        <strong>Proyecto final:</strong> Jaime Sierra, Fabricio Puche, Daniel
+        Carrillo
+      </p>
+      <p>
+        <em> Este documento fue creado solo con fines educativos y no representa
+          ni reemplaza a ningun documento oficial.</em
+        >
+      </p>
+    </div>
+  </body>
+</html>

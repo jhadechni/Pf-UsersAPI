@@ -12,23 +12,35 @@ controller.createPDFTIL = async (transactions) => {
         <hr />
         <p style="text-align: left"><strong>ANOTACION:</strong>  {{fecha}} Radicación: S/N</p>   <p style="text-align: right"><strong>VALOR ACTO:</strong> {{actValor}} </p>
         <p style="text-align: left">
-          <strong>DE:</strong> {{prevOwner}}<br /><strong>A:</strong>
+          <strong>DE:</strong> C.C {{prevOwner}}<br /><strong>A:</strong>
           C.C {{actualOwner}}
         </p>
         <p style="text-align: left">{{description}}</p>
         <p style="text-align: left">Cedula admin: {{adminID}}</p>`;
         let contenido = ``
-        transactions.forEach(async (element)  => {
-            const user = await userModel.find({blockchain_PK : element.prevOwner})
-            newData = template.replace("{{prevOwner}}", user.cedula)
-                .replace("{{actualOwner}}", element.cedula)
-                .replace("{{description}}", element.description)
-                .replace("{{adminID}}", element.adminId)
-                .replace("null", "X")
-                .replace("{{actValor}}", new Intl.NumberFormat('en-CO', {style: 'currency',currency: 'COP', minimumFractionDigits: 2}).format(element.actValue))
-                .replace("{{fecha}}", new Date(element.timeStamp).toLocaleString())
-            contenido += newData
-        })
+
+        await Promise.all( transactions.map(async (element) => {
+            if (element.prevOwner != null) {
+                const user = await userModel.findOne({ blockchain_PK: element.prevOwner })
+                console.log(user.cedula)
+
+                newData = template.replace("{{prevOwner}}", user.cedula)
+                    .replace("{{actualOwner}}", element.cedula)
+                    .replace("{{description}}", element.description)
+                    .replace("{{adminID}}", element.adminId)
+                    .replace("{{actValor}}", new Intl.NumberFormat('en-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 2 }).format(element.actValue))
+                    .replace("{{fecha}}", new Date(element.timeStamp).toLocaleString())
+                contenido += newData
+            } else {
+                newData = template.replace("{{prevOwner}}", 'X')
+                    .replace("{{actualOwner}}", element.cedula)
+                    .replace("{{description}}", element.description)
+                    .replace("{{adminID}}", element.adminId)
+                    .replace("{{actValor}}", new Intl.NumberFormat('en-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 2 }).format(element.actValue))
+                    .replace("{{fecha}}", new Date(element.timeStamp).toLocaleString())
+                contenido += newData
+            }
+        }))
 
         contenidoHtml = contenidoHtml.replace("{{descriptionALL}}", contenido)
             .replace("{{city}}", transactions[0].city)

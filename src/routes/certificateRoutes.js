@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const router = Router();
-const { createCertificateTIL, verInfoTransaction, updateTILCertificate, verInfoAllTransactions, transferCertificateTIL } = require('../controllers/transactionsRoutesController')
+const { createCertificateTIL, verInfoTransaction, updateTILCertificate, verInfoAllTransactions, transferCertificateTIL, verInfoTransactionPQRSD, createCertificatePQRSD, modifyStatusPQRSD, closePQRSD } = require('../controllers/transactionsRoutesController')
 
 router.route('/createCertificate/TIL')
     .post(createCertificateTIL)
@@ -8,7 +8,7 @@ router.route('/createCertificate/TIL')
 router.route('/verInfo/TIL')
     .get(verInfoTransaction)
 
-router.route('/verInfo/TIL/All')
+router.route('/verInfo/All')
     .get(verInfoAllTransactions)
 
 router.route('/updateCertificate/TIL')
@@ -16,5 +16,18 @@ router.route('/updateCertificate/TIL')
 
 router.route('/transfer/TIL')
     .post(transferCertificateTIL)
+
+//PQRSD
+router.route('/createCertificate/PQRSD')
+    .post(createCertificatePQRSD)
+
+router.route('/modifyStatus/PQRSD')
+    .post(modifyStatusPQRSD)
+
+router.route('/closePQRSD')
+    .post(closePQRSD)
+
+router.route('/verInfo/PQRSD')
+    .get(verInfoTransactionPQRSD)
 
 module.exports = router;

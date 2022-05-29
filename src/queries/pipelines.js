@@ -1,10 +1,15 @@
 const controller = {}
 
 
-controller.infoTransactionQuery = (valor) => [
+controller.infoTransactionQuery = (valor,tipo) => [
     {
         $match: {
             cedula: valor
+        }
+    },
+    {
+        $match: {
+            type: tipo
         }
     },
     {

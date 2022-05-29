@@ -5,7 +5,7 @@ const crypto = require('crypto')
 const axios = require('axios')
 const auth = require('../config/auth')
 const { infoTransactionQuery } = require('../queries/pipelines')
-const { createPDFTIL } = require('../config/filesCreation')
+const { createPDFTIL, createPDFPQRSD } = require('../config/filesCreation')
 
 
 //TIL Certificates
@@ -164,7 +164,7 @@ controller.verInfoTransaction = async (req, res) => {
         if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
 
         try {
-            const certificados = await transactionModel.aggregate(infoTransactionQuery(req.query.cedula))
+            const certificados = await transactionModel.aggregate(infoTransactionQuery(req.query.cedula, 'CTRA'))
 
             if (certificados.length === 0) { return res.status(404).json({ message: 'No certificates found for this user' }) }
 
@@ -212,15 +212,19 @@ controller.transferCertificateTIL = async (req, res) => {
 
         const newUser = await userModel.findOne({ cedula: req.body.newCedula })
 
-        const certificate = await transactionModel.findOne({ enrollmentNumber: req.body.enrollmentNumber })
+        const certificate = await transactionModel.find({ enrollmentNumber: req.body.enrollmentNumber }).sort({ timeStamp: -1 })
 
-        if (!isAdmin || !user || !certificate || !newUser) { return res.status(404).json({ message: 'Users, admin or certificate not found' }) }
+        if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
+
+        if (!isAdmin || !user || !certificate[0] || !newUser) { return res.status(404).json({ message: 'Users, admin or certificate not found' }) }
+
+        console.log('user', user)
+        console.log('new user', newUser)
+        console.log('certificate 0', certificate[0])
 
         if (isAdmin.role != "ADMIN") { return res.status(403).json({ message: 'Action not allowed' }) }
 
-        if (user.walletPublicAddress != certificate.actualOwner) { return res.status(403).json({ message: 'This certificate doesnt belong to this user' }) }
-
-        if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
+        if (user.blockchain_PK != certificate[0].actualOwner) { return res.status(403).json({ message: 'This certificate doesnt belong to this user' }) }
 
         const metadata = {
             "enrollmentNumber": req.body.enrollmentNumber,
@@ -235,10 +239,11 @@ controller.transferCertificateTIL = async (req, res) => {
             "fromPk": user.blockchain_PK,
             "toPk": newUser.blockchain_PK,
             "metadata": metadata,
-            "tokenId": certificate.b_tk_id,
+            "tokenId": certificate[0].b_tk_id,
         }
 
         console.log(data)
+
         const response = await axios.post(process.env.BLOCKCHAIN_API_URI.concat('/certificate/transfer'), { data }) || 'Couldnt communicate'
 
         const date = new Date(response.data.timestamp * 1000)
@@ -296,16 +301,15 @@ controller.createCertificatePQRSD = async (req, res) => {
         "phoneNumber": req.body.phoneNumber,
         "address": req.body.address,
         "applicationSite": req.body.applicationSite,
-        "city": req.body.city
+        "city": req.body.city,
+        "status": "Creado"
     }
 
     const data = {
-        "metadata": metadata,
-        "ownerPk": user.blockchain_PK,
-        "authPk": isAdmin.blockchain_PK
+        "ownerPk": user.blockchain_PK
     }
 
-    const response = await axios.post(process.env.BLOCKCHAIN_API_URI.concat('/certificate/create'), { data }) || 'Couldnt communicate'
+    const response = await axios.post(process.env.BLOCKCHAIN_API_URI.concat('/PQRSD/create'), { data }) || 'Couldnt communicate'
 
     const date = new Date(response.data.timestamp * 1000)
 
@@ -315,9 +319,74 @@ controller.createCertificatePQRSD = async (req, res) => {
         "tx_hash": response.data.txHash,
         "b_tk_id": response.data.tokenId,
         "price": response.data.fee,
-        "prevOwner": response.data.prevOwner,
-        "actualOwner": response.data.currentOwner,
-        "status": response.data.status,
+        "prevOwner": metadata.ownerId,
+        "actualOwner": metadata.ownerId,
+        "status": metadata.status,
+        "timeStamp": date,
+        "actValue": metadata.actValue,
+        "description": metadata.description,
+        "adminId": "X",
+        "city": metadata.city,
+        "metadata": metadata,
+        "type": "PQRSD"
+    }
+
+    console.log(transactionData)
+    await transactionModel.create(transactionData)
+    return res.status(201).json({ message: "PQRSD created sucefully!" })
+
+}
+
+controller.modifyStatusPQRSD = async (req, res) => {
+
+    if (!req.body.enrollmentNumber || !req.body.newStatus || !req.body.cedula || !req.body.cedulaAdmin) { return res.sendStatus(400) }
+
+    if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
+
+    const user = await userModel.findOne({ cedula: req.body.cedula })
+
+    const isAdmin = await userModel.findOne({ cedula: req.body.adminCedula })
+
+    const certificate = await transactionModel.findOne({ enrollmentNumber: req.body.enrollmentNumber })
+
+    if (!user || !certificate || !isAdmin) { return res.status(404).json({ message: 'User, admin or certificate not found' }) }
+
+    if (isAdmin.role != "ADMIN") { return res.status(403).json({ message: 'Action not allowed' }) }
+
+    if (certificate.metadata.status === "Cerrado") { return res.status(403).json({ message: 'PQRSD already closed' }) }
+
+    const metadata = {
+        "enrollmentNumber": req.body.enrollmentNumber,
+        "ownerId": user.cedula,
+        "description": certificate.description,
+        "type": certificate.metadata.type,
+        "phoneNumber": certificate.metadata.phoneNumber,
+        "address": certificate.metadata.address,
+        "applicationSite": certificate.metadata.applicationSite,
+        "city": certificate.metadata.city,
+        "status": req.body.status
+    }
+
+    const data = {
+        "ownerPk": user.blockchain_PK,
+        "tokenId": certificate.b_tk_id,
+        "newStatus": req.body.newStatus
+    }
+
+    //WAITING FOR ENDPOINT
+    const response = await axios.put(process.env.BLOCKCHAIN_API_URI.concat('/PQRSD/update'), { data }) || 'Couldnt communicate'
+
+    const date = new Date(response.data.timestamp * 1000)
+
+    const transactionData = {
+        "enrollmentNumber": enrollmentNumber,
+        "cedula": metadata.ownerId,
+        "tx_hash": response.data.txHash,
+        "b_tk_id": response.data.tokenId,
+        "price": response.data.fee,
+        "prevOwner": metadata.ownerId,
+        "actualOwner": metadata.ownerId,
+        "status": metadata.status,
         "timeStamp": date,
         "actValue": metadata.actValue,
         "description": metadata.description,
@@ -333,17 +402,107 @@ controller.createCertificatePQRSD = async (req, res) => {
 
 }
 
-controller.modifyStatusPQRSD = async (req, res) => {
-    if (!req.body.enrollmentNumber|| !req.body.newStatus || !req.body.cedula) { return res.sendStatus(400) }
-    
+controller.closePQRSD = async (req, res) => {
+    if (!req.body.enrollmentNumber || !req.body.cedula || !req.body.cedulaAdmin) { return res.sendStatus(400) }
+
+    if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
+
     const user = await userModel.findOne({ cedula: req.body.cedula })
+
+    const isAdmin = await userModel.findOne({ cedula: req.body.adminCedula })
 
     const certificate = await transactionModel.findOne({ enrollmentNumber: req.body.enrollmentNumber })
 
-    if (!user || !certificate) { return res.status(404).json({ message: 'User, admin or certificate not found' }) }
+    if (!user || !certificate || !isAdmin) { return res.status(404).json({ message: 'User, admin or certificate not found' }) }
 
-    if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
+    if (isAdmin.role != "ADMIN") { return res.status(403).json({ message: 'Action not allowed' }) }
+
+    const metadata = {
+        "enrollmentNumber": req.body.enrollmentNumber,
+        "ownerId": user.cedula,
+        "description": certificate.description,
+        "type": certificate.metadata.type,
+        "phoneNumber": certificate.metadata.phoneNumber,
+        "address": certificate.metadata.address,
+        "applicationSite": certificate.metadata.applicationSite,
+        "city": certificate.metadata.city,
+        "status": "Cerrado"
+    }
+
+    const data = {
+        "ownerPk": user.blockchain_PK,
+        "tokenId": certificate.b_tk_id
+    }
+
+    const response = await axios.put(process.env.BLOCKCHAIN_API_URI.concat('/PQRSD/update'), { data }) || 'Couldnt communicate'
+
+    const date = new Date(response.data.timestamp * 1000)
+
+    const transactionData = {
+        "enrollmentNumber": enrollmentNumber,
+        "cedula": metadata.ownerId,
+        "tx_hash": response.data.txHash,
+        "b_tk_id": response.data.tokenId,
+        "price": response.data.fee,
+        "prevOwner": metadata.ownerId,
+        "actualOwner": metadata.ownerId,
+        "status": metadata.status,
+        "timeStamp": date,
+        "actValue": metadata.actValue,
+        "description": metadata.description,
+        "adminId": "X",
+        "city": metadata.city,
+        "metadata": metadata,
+        "type": "PQRSD"
+    }
+
+    console.log(transactionData)
+    await transactionModel.create(transactionData)
+    return res.status(201).json({ message: "Certificate created sucefully!" })
 }
+
+controller.verInfoTransactionPQRSD = async (req, res) => {
+
+    if (req.query.enrollmentNumber) {
+
+        if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
+
+        const transactions = await transactionModel.find({ enrollmentNumber: req.query.enrollmentNumber, type: 'PQRSD' }, '-tx_hash')
+
+        if (transactions.length === 0) { return res.status(404).json({ message: 'Certificate with this enrollmentNumber doesnt exist.' }) }
+
+        const pdf = await createPDFPQRSD(transactions)
+
+        res.setHeader('Content-Type', 'application/pdf')
+        return res.status(200).end(pdf)
+
+    } else {
+
+        if (!req.query.cedula) { return res.sendStatus(400) }
+
+        const user = await userModel.findOne({ cedula: req.query.cedula })
+
+        if (!user) { return res.status(404).json({ message: 'No user found' }) }
+
+        if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
+
+        try {
+            const certificados = await transactionModel.aggregate(infoTransactionQuery(req.query.cedula, 'PQRSD'))
+
+            if (certificados.length === 0) { return res.status(404).json({ message: 'No certificates found for this user' }) }
+
+            return res.status(200).json({ certificados: certificados })
+
+        } catch (error) {
+
+            console.log(error)
+            return res.status(500).json({ message: 'Server internal error' })
+
+        }
+    }
+}
+
+
 
 
 module.exports = controller

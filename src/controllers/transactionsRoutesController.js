@@ -7,7 +7,6 @@ const auth = require('../config/auth')
 const { infoTransactionQuery } = require('../queries/pipelines')
 const { createPDFTIL, createPDFPQRSD } = require('../config/filesCreation')
 
-
 //TIL Certificates
 controller.createCertificateTIL = async (req, res) => {
 

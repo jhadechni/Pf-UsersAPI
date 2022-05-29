@@ -22,10 +22,10 @@ router.route('/createCertificate/PQRSD')
     .post(createCertificatePQRSD)
 
 router.route('/modifyStatus/PQRSD')
-    .post(modifyStatusPQRSD)
+    .put(modifyStatusPQRSD)
 
 router.route('/closePQRSD')
-    .post(closePQRSD)
+    .put(closePQRSD)
 
 router.route('/verInfo/PQRSD')
     .get(verInfoTransactionPQRSD)

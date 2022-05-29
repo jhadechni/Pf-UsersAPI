@@ -5,6 +5,7 @@ const auth = require('../config/auth')
 const bcrypt = require('bcrypt')
 const axios = require('axios')
 const { sendWelcomeMessage } = require('../config/emailing')
+const { infoTransactionQuery } = require('../queries/pipelines.js')
 
 //Login
 controller.login = async (req, res) => {
@@ -81,8 +82,8 @@ controller.getUser = async (req, res) => {
             if (!userSaved) {
                 return res.status(404).json({ data: "User not found" })
             }
-            const pqrsd = await transactionModel.find({type : 'PQRSD', cedula : userSaved.cedula})
-            const certificates = await transactionModel.find({type : 'CTRA' , cedula : userSaved.cedula})
+            const pqrsd = await transactionModel.aggregate(infoTransactionQuery(userSaved.cedula,'PQRSD'))
+            const certificates = await transactionModel.aggregate(infoTransactionQuery(userSaved.cedula,'CTRA'))
             
             const user = {
                 ...userSaved._doc,

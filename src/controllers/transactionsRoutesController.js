@@ -371,7 +371,8 @@ controller.modifyStatusPQRSD = async (req, res) => {
             "address": certificate.metadata.get('address'),
             "applicationSite": certificate.metadata.applicationSite,
             "city": certificate.metadata.get('city'),
-            "status": req.body.newStatus
+            "status": req.body.newStatus,
+            "type" : certificate.type
         }
 
         const data = {

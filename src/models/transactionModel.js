@@ -14,6 +14,10 @@ const transactionSchema = new mongoose.Schema({
     actValue: { type: String, required: true },
     adminId: { type: String, required: true },
     city: { type: String, required: true },
+    metadata : {
+        type: Map,
+        of: String
+      },
     type: {
         type: String,
         enum: ['CTRA', 'PQRSD'],

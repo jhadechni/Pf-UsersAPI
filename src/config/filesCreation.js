@@ -1,6 +1,7 @@
 const controller = {}
 const fs = require("fs").promises;
 const pdf = require('html-pdf');
+const userModel = require("../models/userModel");
 
 controller.createPDFTIL = async (transactions) => {
     try {
@@ -18,7 +19,8 @@ controller.createPDFTIL = async (transactions) => {
         <p style="text-align: left">Cedula admin: {{adminID}}</p>`;
         let contenido = ``
         transactions.forEach((element) => {
-            newData = template.replace("{{prevOwner}}", element.prevOwner)
+            const user = userModel.find({blockchain_PK : element.prevOwner})
+            newData = template.replace("{{prevOwner}}", user.cedula)
                 .replace("{{actualOwner}}", element.cedula)
                 .replace("{{description}}", element.description)
                 .replace("{{adminID}}", element.adminId)

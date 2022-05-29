@@ -18,7 +18,7 @@ controller.createPDFTIL = async (transactions) => {
         <p style="text-align: left">{{description}}</p>
         <p style="text-align: left">Cedula admin: {{adminID}}</p>`;
         let contenido = ``
-        transactions.forEach((element) => {
+        transactions.forEach(async (element)  => {
             const user = await userModel.find({blockchain_PK : element.prevOwner})
             newData = template.replace("{{prevOwner}}", user.cedula)
                 .replace("{{actualOwner}}", element.cedula)

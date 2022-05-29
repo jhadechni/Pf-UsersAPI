@@ -279,9 +279,8 @@ controller.transferCertificateTIL = async (req, res) => {
 //PQRSD Certificates
 controller.createCertificatePQRSD = async (req, res) => {
     if (!req.body.cedula || !req.body.description
-        || !req.body.type || !req.body.enrollmentNumber
-        || !req.body.phoneNumber || !req.body.address
-        || !req.body.applicationSite) { return res.sendStatus(400) }
+        || !req.body.type || !req.body.phoneNumber || !req.body.address
+        || !req.body.applicationSite || !req.body.city) { return res.sendStatus(400) }
 
     const user = await userModel.findOne({ cedula: req.body.cedula })
 
@@ -308,7 +307,7 @@ controller.createCertificatePQRSD = async (req, res) => {
         "ownerPk": user.blockchain_PK
     }
 
-    const response = await axios.post(process.env.BLOCKCHAIN_API_URI.concat('/PQRSD/create'), { data }) || 'Couldnt communicate'
+    const response = await axios.post(process.env.BLOCKCHAIN_API_URI.concat('/pqrsd/create'), { data }) || 'Couldnt communicate'
 
     const date = new Date(response.data.timestamp * 1000)
 
@@ -322,7 +321,7 @@ controller.createCertificatePQRSD = async (req, res) => {
         "actualOwner": metadata.ownerId,
         "status": metadata.status,
         "timeStamp": date,
-        "actValue": metadata.actValue,
+        "actValue": "0",
         "description": metadata.description,
         "adminId": "X",
         "city": metadata.city,
@@ -338,7 +337,7 @@ controller.createCertificatePQRSD = async (req, res) => {
 
 controller.modifyStatusPQRSD = async (req, res) => {
 
-    if (!req.body.enrollmentNumber || !req.body.newStatus || !req.body.cedula || !req.body.cedulaAdmin) { return res.sendStatus(400) }
+    if (!req.body.enrollmentNumber || !req.body.newStatus || !req.body.cedula || !req.body.adminCedula) { return res.sendStatus(400) }
 
     if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
 
@@ -353,17 +352,17 @@ controller.modifyStatusPQRSD = async (req, res) => {
     if (isAdmin.role != "ADMIN") { return res.status(403).json({ message: 'Action not allowed' }) }
 
     if (certificate.metadata.status === "Cerrado") { return res.status(403).json({ message: 'PQRSD already closed' }) }
-
+    
     const metadata = {
         "enrollmentNumber": req.body.enrollmentNumber,
         "ownerId": user.cedula,
         "description": certificate.description,
         "type": certificate.metadata.type,
-        "phoneNumber": certificate.metadata.phoneNumber,
-        "address": certificate.metadata.address,
+        "phoneNumber": certificate.metadata.get('phoneNumber'),
+        "address": certificate.metadata.get('address'),
         "applicationSite": certificate.metadata.applicationSite,
-        "city": certificate.metadata.city,
-        "status": req.body.status
+        "city": certificate.metadata.get('city'),
+        "status": req.body.newStatus
     }
 
     const data = {
@@ -372,13 +371,12 @@ controller.modifyStatusPQRSD = async (req, res) => {
         "newStatus": req.body.newStatus
     }
 
-    //WAITING FOR ENDPOINT
-    const response = await axios.put(process.env.BLOCKCHAIN_API_URI.concat('/PQRSD/update'), { data }) || 'Couldnt communicate'
+    const response = await axios.put(process.env.BLOCKCHAIN_API_URI.concat('/pqrsd/update'), { data }) || 'Couldnt communicate'
 
     const date = new Date(response.data.timestamp * 1000)
 
     const transactionData = {
-        "enrollmentNumber": enrollmentNumber,
+        "enrollmentNumber": metadata.enrollmentNumber,
         "cedula": metadata.ownerId,
         "tx_hash": response.data.txHash,
         "b_tk_id": response.data.tokenId,
@@ -387,7 +385,7 @@ controller.modifyStatusPQRSD = async (req, res) => {
         "actualOwner": metadata.ownerId,
         "status": metadata.status,
         "timeStamp": date,
-        "actValue": metadata.actValue,
+        "actValue": "0",
         "description": metadata.description,
         "adminId": "X",
         "city": metadata.city,
@@ -397,12 +395,13 @@ controller.modifyStatusPQRSD = async (req, res) => {
 
     console.log(transactionData)
     await transactionModel.create(transactionData)
-    return res.status(201).json({ message: "Certificate created sucefully!" })
+    return res.status(201).json({ message: "PQRSD updated sucefully!" })
 
 }
 
 controller.closePQRSD = async (req, res) => {
-    if (!req.body.enrollmentNumber || !req.body.cedula || !req.body.cedulaAdmin) { return res.sendStatus(400) }
+
+    if (!req.body.enrollmentNumber || !req.body.cedula || !req.body.adminCedula) { return res.sendStatus(400) }
 
     if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
 
@@ -416,15 +415,17 @@ controller.closePQRSD = async (req, res) => {
 
     if (isAdmin.role != "ADMIN") { return res.status(403).json({ message: 'Action not allowed' }) }
 
+    if (certificate.metadata.status === "Cerrado") { return res.status(403).json({ message: 'PQRSD already closed' }) }
+    
     const metadata = {
         "enrollmentNumber": req.body.enrollmentNumber,
         "ownerId": user.cedula,
         "description": certificate.description,
-        "type": certificate.metadata.type,
-        "phoneNumber": certificate.metadata.phoneNumber,
-        "address": certificate.metadata.address,
-        "applicationSite": certificate.metadata.applicationSite,
-        "city": certificate.metadata.city,
+        "type": certificate.metadata.get('type'),
+        "phoneNumber": certificate.metadata.get('phoneNumber'),
+        "address": certificate.metadata.get('address'),
+        "applicationSite": certificate.metadata.get('applicationSite'),
+        "city": certificate.metadata.get('city'),
         "status": "Cerrado"
     }
 
@@ -433,12 +434,12 @@ controller.closePQRSD = async (req, res) => {
         "tokenId": certificate.b_tk_id
     }
 
-    const response = await axios.put(process.env.BLOCKCHAIN_API_URI.concat('/PQRSD/update'), { data }) || 'Couldnt communicate'
+    const response = await axios.post(process.env.BLOCKCHAIN_API_URI.concat('/pqrsd/close'), { data }) || 'Couldnt communicate'
 
     const date = new Date(response.data.timestamp * 1000)
 
     const transactionData = {
-        "enrollmentNumber": enrollmentNumber,
+        "enrollmentNumber": req.body.enrollmentNumber,
         "cedula": metadata.ownerId,
         "tx_hash": response.data.txHash,
         "b_tk_id": response.data.tokenId,
@@ -457,7 +458,7 @@ controller.closePQRSD = async (req, res) => {
 
     console.log(transactionData)
     await transactionModel.create(transactionData)
-    return res.status(201).json({ message: "Certificate created sucefully!" })
+    return res.status(201).json({ message: "PQRSD closed sucefully!" })
 }
 
 controller.verInfoTransactionPQRSD = async (req, res) => {

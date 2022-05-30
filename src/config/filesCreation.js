@@ -6,7 +6,6 @@ const userModel = require("../models/userModel");
 controller.createPDFTIL = async (transactions) => {
     try {
         //fs.unlinkSync('src/outputs/salida.pdf')
-
         let contenidoHtml = await fs.readFile('src/templates/templateTIL.html', 'utf8')
         let template = `
         <hr />
@@ -21,8 +20,9 @@ controller.createPDFTIL = async (transactions) => {
 
         await Promise.all( transactions.map(async (element) => {
             if (element.prevOwner != null) {
-                const user = await userModel.findOne({ blockchain_PK: element.prevOwner })
-                console.log(user.cedula)
+                console.log(element.prevOwner)
+                const user = await userModel.findOne({ walletPublicAddress: element.prevOwner })
+                //console.log(user)
 
                 newData = template.replace("{{prevOwner}}", user.cedula)
                     .replace("{{actualOwner}}", element.cedula)

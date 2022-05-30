@@ -1,7 +1,7 @@
 controller = {}
 const userModel = require('../models/userModel')
 const transactionModel = require('../models/transactionModel')
-const crypto = require('crypto')
+import { v4 as uuidv4 } from 'uuid';
 const axios = require('axios')
 const auth = require('../config/auth')
 const { infoTransactionQuery, infoTransactionQuerybyEnrollment } = require('../queries/pipelines')
@@ -23,7 +23,7 @@ controller.createCertificateTIL = async (req, res) => {
 
         if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
 
-        const enrollmentNumber = crypto.randomBytes(7).toString('hex')
+        const enrollmentNumber = uuidv4()
 
         const metadata = {
             "enrollmentNumber": enrollmentNumber,
@@ -288,7 +288,7 @@ controller.createCertificatePQRSD = async (req, res) => {
 
         if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
 
-        const enrollmentNumber = crypto.randomBytes(7).toString('hex')
+        const enrollmentNumber = uuidv4()
         
         const admin = await userModel.findOne({role : 'ADMIN'})
 

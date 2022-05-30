@@ -223,7 +223,7 @@ controller.transferCertificateTIL = async (req, res) => {
 
         if (isAdmin.role != "ADMIN") { return res.status(403).json({ message: 'Action not allowed' }) }
 
-        if (user.blockchain_PK != certificate[0].actualOwner) { return res.status(403).json({ message: 'This certificate doesnt belong to this user' }) }
+        if (user.walletPublicAddress != certificate[0].actualOwner) { return res.status(403).json({ message: 'This certificate doesnt belong to this user' }) }
 
         const metadata = {
             "enrollmentNumber": req.body.enrollmentNumber,

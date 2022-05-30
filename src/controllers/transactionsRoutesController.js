@@ -334,7 +334,7 @@ controller.createCertificatePQRSD = async (req, res) => {
 
         console.log(transactionData)
         await transactionModel.create(transactionData)
-        return res.status(201).json({ message: "PQRSD created sucefully!" })
+        return res.status(200).json({ message: "PQRSD created sucefully!" })
 
 
     } catch (error) {

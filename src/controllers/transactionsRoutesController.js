@@ -377,7 +377,7 @@ controller.modifyStatusPQRSD = async (req, res) => {
         }
 
         const data = {
-            "ownerPk": user.blockchain_PK,
+            "authPk": isAdmin.blockchain_PK,
             "tokenId": certificate.b_tk_id,
             "newStatus": req.body.newStatus
         }
@@ -449,7 +449,7 @@ controller.closePQRSD = async (req, res) => {
         }
 
         const data = {
-            "ownerPk": user.blockchain_PK,
+            "authPk": isAdmin.blockchain_PK,
             "tokenId": certificate.b_tk_id
         }
 

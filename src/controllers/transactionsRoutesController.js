@@ -280,9 +280,7 @@ controller.transferCertificateTIL = async (req, res) => {
 //PQRSD Certificates
 controller.createCertificatePQRSD = async (req, res) => {
     try {
-        if (!req.body.cedula || !req.body.description
-            || !req.body.type || !req.body.phoneNumber || !req.body.address
-            || !req.body.applicationSite || !req.body.city) { return res.sendStatus(400) }
+        if (!req.body.cedula || !req.body.description || !req.body.type || !req.body.phoneNumber || !req.body.address || !req.body.applicationSite || !req.body.city) { return res.sendStatus(400) }
 
         const user = await userModel.findOne({ cedula: req.body.cedula })
 
@@ -291,6 +289,8 @@ controller.createCertificatePQRSD = async (req, res) => {
         if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
 
         const enrollmentNumber = crypto.randomBytes(7).toString('hex')
+        
+        const admin = await userModel.findOne({role : 'ADMIN'})
 
         //TODO: view metadata 
         const metadata = {
@@ -306,7 +306,8 @@ controller.createCertificatePQRSD = async (req, res) => {
         }
 
         const data = {
-            "ownerPk": user.blockchain_PK
+            "ownerPk": user.blockchain_PK,
+            "authPk" : admin.blockchain_PK
         }
 
         const response = await axios.post(process.env.BLOCKCHAIN_API_URI.concat('/pqrsd/create'), { data }) || 'Couldnt communicate'

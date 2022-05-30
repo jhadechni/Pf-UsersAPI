@@ -237,6 +237,7 @@ controller.transferCertificateTIL = async (req, res) => {
         const data = {
             "fromPk": user.blockchain_PK,
             "toPk": newUser.blockchain_PK,
+            "authPk": isAdmin.blockchain_PK,
             "metadata": metadata,
             "tokenId": certificate[0].b_tk_id,
         }
@@ -372,7 +373,7 @@ controller.modifyStatusPQRSD = async (req, res) => {
             "applicationSite": certificate.metadata.applicationSite,
             "city": certificate.metadata.get('city'),
             "status": req.body.newStatus,
-            "type" : certificate.type
+            "type": certificate.type
         }
 
         const data = {
@@ -493,7 +494,7 @@ controller.verInfoTransactionPQRSD = async (req, res) => {
         if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
 
         try {
-            const transactions = await transactionModel.aggregate(infoTransactionQuerybyEnrollment(req.query.enrollmentNumber,'PQRSD'))
+            const transactions = await transactionModel.aggregate(infoTransactionQuerybyEnrollment(req.query.enrollmentNumber, 'PQRSD'))
             console.log(transactions[0])
             if (transactions.length === 0) { return res.status(404).json({ message: 'Certificate with this enrollmentNumber doesnt exist.' }) }
 

@@ -468,7 +468,7 @@ controller.closePQRSD = async (req, res) => {
             "actualOwner": metadata.ownerId,
             "status": metadata.status,
             "timeStamp": date,
-            "actValue": metadata.actValue,
+            "actValue": "0",
             "description": metadata.description,
             "adminId": "X",
             "city": metadata.city,

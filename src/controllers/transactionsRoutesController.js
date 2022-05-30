@@ -1,7 +1,7 @@
 controller = {}
 const userModel = require('../models/userModel')
 const transactionModel = require('../models/transactionModel')
-import { v4 as uuidv4 } from 'uuid';
+const {v4: uuidv4} = require('uuid')
 const axios = require('axios')
 const auth = require('../config/auth')
 const { infoTransactionQuery, infoTransactionQuerybyEnrollment } = require('../queries/pipelines')

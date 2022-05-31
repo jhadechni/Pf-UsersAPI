@@ -1,6 +1,7 @@
 const controller = {}
 const fs = require("fs").promises;
 const pdf = require('html-pdf');
+const phantomPath = require('witch')('phantomjs-prebuilt', 'phantomjs');
 const userModel = require("../models/userModel");
 
 controller.createPDFTIL = async (transactions) => {
@@ -18,7 +19,7 @@ controller.createPDFTIL = async (transactions) => {
         <p style="text-align: left">Cedula admin: {{adminID}}</p>`;
         let contenido = ``
 
-        await Promise.all( transactions.map(async (element) => {
+        await Promise.all(transactions.map(async (element) => {
             if (element.prevOwner != null) {
                 console.log(element.prevOwner)
                 const user = await userModel.findOne({ walletPublicAddress: element.prevOwner })
@@ -64,14 +65,14 @@ controller.createPDFPQRSD = async (transaction) => {
 
         let contenidoHtml = await fs.readFile('src/templates/templatePQRSD.html', 'utf8')
         //console.log(contenidoHtml)
-       contenidoHtml = contenidoHtml.replace("{{fecha}}", new Date(transaction.timeStamp).toLocaleString())
-                                    .replace("{{enrollmentNumber}}", transaction.enrollmentNumber)
-                                    .replace("{{status}}", transaction.status)
-                                    .replace("{{ciudad}}",transaction.city)
-                                    .replace("{{owner}}",transaction.cedula)
-                                    .replace("{{description}}" , transaction.description)
-                                    .replace("{{adminID}}",transaction.adminId)
-                                    .replace("{{fecha}}", new Date(transaction.timeStamp).toLocaleString())
+        contenidoHtml = contenidoHtml.replace("{{fecha}}", new Date(transaction.timeStamp).toLocaleString())
+            .replace("{{enrollmentNumber}}", transaction.enrollmentNumber)
+            .replace("{{status}}", transaction.status)
+            .replace("{{ciudad}}", transaction.city)
+            .replace("{{owner}}", transaction.cedula)
+            .replace("{{description}}", transaction.description)
+            .replace("{{adminID}}", transaction.adminId)
+            .replace("{{fecha}}", new Date(transaction.timeStamp).toLocaleString())
         const options = { "format": "Letter", };
         const pdfBuffer = await createPDF(contenidoHtml, options)
 
@@ -85,7 +86,7 @@ controller.createPDFPQRSD = async (transaction) => {
 
 function createPDF(html, options) {
     return new Promise((resolve, reject) => {
-        pdf.create(html, options).toBuffer(function (err, buffer) {
+        pdf.create(html, { ...options, phantomPath: `${phantomPath}` }).toBuffer(function (err, buffer) {
             if (err) {
                 reject(err)
             }

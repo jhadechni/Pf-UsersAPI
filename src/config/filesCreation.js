@@ -3,7 +3,7 @@ const fs = require("fs").promises;
 const pdf = require('html-pdf');
 const phantomPath = require('witch')('phantomjs-prebuilt', 'phantomjs');
 const userModel = require("../models/userModel");
-
+console.log(phantomPath)
 controller.createPDFTIL = async (transactions) => {
     try {
         //fs.unlinkSync('src/outputs/salida.pdf')
